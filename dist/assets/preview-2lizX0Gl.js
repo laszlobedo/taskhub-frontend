@@ -1,0 +1,1 @@
+import{o as t,j as e,R as r,n}from"./DesignPreview-CCydf2Ta.js";const o=document.getElementById("root");if(!o)throw new Error("Nem található a gyökér elem a Preview-hoz");const a=t.createRoot(o);a.render(e.jsx(r.StrictMode,{children:e.jsx(n,{onExit:()=>{window.location.href="/"}})}));
