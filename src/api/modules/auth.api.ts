@@ -32,5 +32,6 @@ export const authApi = {
   logout: () =>
     apiClient.post<void>(AUTH_ENDPOINTS.logout, undefined, {
       authMode: AUTH_MODE.REQUIRED,
+      suppressUnauthorizedRedirect: true,
     }),
 };

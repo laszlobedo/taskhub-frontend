@@ -7,6 +7,7 @@ import type {
 import type { MeResponseDto } from '../dto/user.dto';
 import { authApi } from '../modules/auth.api';
 import { authStorage } from '../../auth/storage';
+import { setIgnoreUnauthorizedRedirect } from '../client';
 
 const getTokenFromResponse = (response: { token: string; token_type: string }): string => {
   if (!response.token || response.token.trim().length === 0) {
@@ -59,11 +60,18 @@ export const authService = {
   },
 
   async logout(): Promise<void> {
+    setIgnoreUnauthorizedRedirect(true);
     try {
       await authApi.logout();
+    } catch {
+      // Ignore logout endpoint failures; client session clear is source of truth.
     } finally {
       // Always clear local session, even if backend logout fails.
       authStorage.clearSession();
+      // Delay re-enabling to avoid late in-flight 401 race after logout click.
+      window.setTimeout(() => {
+        setIgnoreUnauthorizedRedirect(false);
+      }, 0);
     }
   },
 

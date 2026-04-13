@@ -58,7 +58,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onChangeView, isMo
              <Hexagon size={20} className="text-white fill-white relative z-10" strokeWidth={0} />
              <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
         </div>
-        <span className="font-bold text-xl text-gray-900 tracking-tight">Romania<span className="text-green-700">Workflow</span></span>
+        <span className="font-bold text-xl text-gray-900 tracking-tight">Task<span className="text-green-700">Hub</span></span>
       </div>
 
       <div className="px-6 mb-6">
@@ -159,7 +159,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onChangeView, isMo
             <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center relative overflow-hidden">
                 <Hexagon size={20} className="text-white fill-white relative z-10" strokeWidth={0} />
             </div>
-            <span className="font-bold text-lg text-gray-900">Romania<span className="text-green-700">Workflow</span></span>
+            <span className="font-bold text-lg text-gray-900">Task<span className="text-green-700">Hub</span></span>
         </div>
 
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="rounded-full border border-gray-100 p-0.5 relative">

@@ -49,11 +49,11 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
   const prevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
-  
+
   const getDaysInMonth = (date: Date) => {
       return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   };
-  
+
   const getFirstDayOfMonth = (date: Date) => {
       return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
@@ -62,7 +62,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
       const isPast = year < 2025 || (year === 2025 && month < 10);
       const days = getDaysInMonth(new Date(year, month, 1));
       const events = [];
-      
+
       const count = isPast ? 8 : 4;
       for(let i=0; i<count; i++) {
           const day = Math.floor(Math.random() * days) + 1;
@@ -114,7 +114,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
       { id: 102, name: "George B.", time: "Oct 10", msg: "Job completed successfully.", online: false },
       { id: 103, name: "Ana K.", time: "Sep 28", msg: "Thank you!", online: false },
       { id: 104, name: "Vlad T.", time: "Sep 15", msg: "Address confirmed.", online: false },
-      { id: 105, name: "System", time: "Aug 01", msg: "Welcome to RomaniaWorkflow!", online: false },
+      { id: 105, name: "System", time: "Aug 01", msg: "Welcome to TaskHub!", online: false },
   ];
 
   const milestones = [
@@ -154,7 +154,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                                    <button className="text-xs font-bold text-green-700 border border-green-200 px-3 py-1.5 rounded-lg hover:bg-green-50 transition">Upload New</button>
                                </div>
                            </div>
-                           
+
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                <div>
                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">First Name</label>
@@ -189,7 +189,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                      <h3 className="hidden md:flex text-xl font-bold text-gray-900 mb-6 items-center gap-2">
                         <Lock className="text-green-700" size={24}/> Security Settings
                      </h3>
-                     
+
                      <div className="space-y-4">
                          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                              <div>
@@ -211,7 +211,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                       <h3 className="hidden md:flex text-xl font-bold text-gray-900 mb-6 items-center gap-2">
                         <Bell className="text-green-700" size={24}/> Notification Preferences
                      </h3>
-                     
+
                      <div className="space-y-8">
                          <div>
                             <h4 className="font-bold text-gray-800 mb-3 text-lg border-b border-gray-100 pb-2">Email Notifications</h4>
@@ -251,7 +251,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                        <h3 className="hidden md:flex text-xl font-bold text-gray-900 mb-6 items-center gap-2">
                         <FileText className="text-green-700" size={24}/> CV & Documents
                        </h3>
-                       
+
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                            <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center hover:bg-green-50/50 hover:border-green-300 transition cursor-pointer group">
                                <div className="w-12 h-12 bg-green-50 text-green-700 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-100 transition">
@@ -424,7 +424,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
         case 'calendar':
             const daysInMonth = getDaysInMonth(currentDate);
             const firstDay = getFirstDayOfMonth(currentDate);
-            
+
             return (
                 <div className="flex flex-col gap-6 animate-fadeIn h-full relative">
                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -454,7 +454,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                                  </div>
                              ))}
                          </div>
-                         
+
                          <div className="grid grid-cols-7 flex-1 auto-rows-fr bg-white">
                              {Array.from({ length: 42 }).map((_, i) => {
                                  const dayNum = i - firstDay + 1;
@@ -464,8 +464,8 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                                  const isSelected = selectedEvent?.day === dayNum;
 
                                  return (
-                                     <div 
-                                        key={i} 
+                                     <div
+                                        key={i}
                                         onClick={() => {
                                             if(isCurrentMonth) setSelectedEvent(dayEvents.length > 0 ? {day: dayNum, list: dayEvents} : null);
                                         }}
@@ -483,14 +483,14 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                                                      </span>
                                                      <span className="hidden md:inline text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-md">{dayEvents.length > 0 ? dayEvents.length : ''}</span>
                                                  </div>
-                                                 
+
                                                  <div className="hidden md:flex flex-col gap-1.5 overflow-y-auto max-h-[100px] custom-scrollbar">
                                                      {dayEvents.map((ev, idx) => (
-                                                         <div 
-                                                            key={idx} 
+                                                         <div
+                                                            key={idx}
                                                             className={`
                                                                 text-[10px] font-bold px-2 py-1.5 rounded-lg border shadow-sm select-none
-                                                                ${ev.type === 'completed' ? 'bg-gray-100 text-gray-500 border-gray-200 line-through decoration-gray-400 opacity-60' : 
+                                                                ${ev.type === 'completed' ? 'bg-gray-100 text-gray-500 border-gray-200 line-through decoration-gray-400 opacity-60' :
                                                                   ev.type === 'urgent' ? 'bg-red-50 text-red-700 border-red-100' :
                                                                   'bg-[#dcfce7] text-[#14532d] border-green-200'}
                                                             `}
@@ -548,7 +548,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                         <h2 className="text-2xl font-bold text-gray-900">Messages</h2>
                         <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">2 Unread</span>
                     </div>
-                    
+
                     {/* Mobil: teljes képernyős csevegés */}
                     {mobileSelectedChat !== null && (
                         <div className="fixed inset-0 z-50 bg-white flex flex-col md:hidden animate-slideInRight">
@@ -564,7 +564,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="flex-1 p-4 space-y-4 overflow-y-auto bg-gray-50">
                                 <div className="flex justify-center"><span className="text-[10px] font-bold text-gray-300 uppercase">Today</span></div>
                                 <div className="flex gap-3">
@@ -579,7 +579,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div className="p-4 bg-white border-t border-gray-100">
                                 <div className="flex gap-2">
                                     <input type="text" placeholder="Type a message..." className="flex-1 bg-gray-50 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-500" />
@@ -592,20 +592,20 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                     <div className="flex flex-col md:flex-row bg-white rounded-3xl border border-gray-100 shadow-sm flex-1 overflow-hidden min-h-[600px]">
                         <div className="w-full md:w-80 border-r border-gray-100 flex flex-col">
                             <div className="p-4 pb-0 flex gap-1">
-                                <button 
+                                <button
                                     onClick={() => setMessagesTab('inbox')}
                                     className={`flex-1 text-sm font-bold py-2 rounded-lg transition-colors ${messagesTab === 'inbox' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:bg-gray-50'}`}
                                 >
                                     Inbox
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => setMessagesTab('archived')}
                                     className={`flex-1 text-sm font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${messagesTab === 'archived' ? 'bg-gray-100 text-gray-900' : 'text-gray-400 hover:bg-gray-50'}`}
                                 >
                                     <Archive size={14}/> Archived
                                 </button>
                             </div>
-                            
+
                             <div className="p-4 border-b border-gray-50 hidden md:block">
                                 <div className="relative">
                                     <input type="text" placeholder="Search..." className="w-full bg-gray-50 border border-transparent rounded-xl py-2 px-4 text-sm font-medium focus:outline-none focus:border-green-200"/>
@@ -615,8 +615,8 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                                 {messagesTab === 'inbox' ? (
                                     <>
                                         {inboxMessages.map((msg, i) => (
-                                            <div 
-                                                key={msg.id} 
+                                            <div
+                                                key={msg.id}
                                                 onClick={() => setMobileSelectedChat(msg.id)}
                                                 className={`p-4 border-l-4 cursor-pointer transition ${i === 0 ? 'bg-green-50/50 border-green-700 md:bg-gray-50' : 'hover:bg-gray-50 border-transparent'}`}
                                             >
@@ -700,11 +700,11 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                     {/* Referral: nagy stat blokk (Invite Friends…) */}
                     <div className="bg-gradient-to-br from-green-900 to-green-800 rounded-[32px] p-8 md:p-12 text-center text-white relative overflow-hidden shadow-xl">
                         <div className="absolute top-0 left-0 w-full h-full opacity-10" style={{backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
-                        
+
                         <div className="relative z-10 max-w-3xl mx-auto">
                             <span className="bg-green-800 text-green-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-green-700 mb-6 inline-block">Referral Program</span>
                             <h2 className="text-3xl md:text-5xl font-extrabold mb-6">Invite Friends, <br/><span className="text-green-300">Earn Unlimited Cash</span></h2>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                                 <div className="bg-white/10 backdrop-blur-sm p-4 rounded-2xl border border-white/20">
                                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">1</div>
@@ -722,16 +722,16 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                                     <p className="text-xs text-green-200 mt-1">Get 50 RON instantly.</p>
                                 </div>
                             </div>
-                            
+
                             <div className="bg-white p-2 rounded-2xl flex flex-col md:flex-row items-center gap-2 max-w-lg mx-auto shadow-lg">
                                 <div className="flex-1 px-4 py-2 w-full text-center md:text-left truncate font-mono font-bold text-gray-800 text-lg">
-                                    romaniaworkflow.com/r/ALEX50
+                                    taskhub.com/r/ALEX50
                                 </div>
                                 <button className="bg-green-700 text-white px-8 py-3 rounded-xl font-bold text-sm hover:bg-green-800 transition flex items-center justify-center gap-2 w-full md:w-auto">
                                     <Copy size={16} /> Copy Link
                                 </button>
                             </div>
-                            
+
                             <div className="flex justify-center gap-4 mt-8">
                                 <button className="w-10 h-10 bg-[#1877F2] rounded-full flex items-center justify-center text-white hover:scale-110 transition"><Facebook size={20}/></button>
                                 <button className="w-10 h-10 bg-[#E1306C] rounded-full flex items-center justify-center text-white hover:scale-110 transition"><Instagram size={20}/></button>
@@ -804,7 +804,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                                 </div>
                                 <h3 className="font-bold text-lg text-gray-900 mb-1">{milestone.title}</h3>
                                 <p className="text-sm text-gray-500 mb-4">{milestone.description}</p>
-                                
+
                                 <div className="w-full bg-gray-100 rounded-full h-2 mb-2">
                                     <div className="bg-green-500 h-2 rounded-full transition-all duration-1000" style={{ width: `${(milestone.progress / milestone.total) * 100}%` }}></div>
                                 </div>
@@ -826,7 +826,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                  { id: 'cv', label: 'CV & Documents', icon: FileText },
                  { id: 'privacy', label: 'Privacy', icon: Shield },
             ];
-            
+
             return (
                 <div className="flex flex-col md:flex-row gap-8 h-full animate-fadeIn">
                      <div className="hidden md:block w-64 space-y-1 flex-shrink-0">
@@ -997,7 +997,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
            <div className="p-6 pb-2 hidden lg:block">
                <h1 className="text-xl font-extrabold text-gray-900">My Hub</h1>
            </div>
-           
+
            {/* Görgethető tab lista (Overview, Calendar, …) */}
            <div className="flex lg:flex-col overflow-x-auto lg:overflow-x-visible px-4 lg:px-6 py-4 gap-2 scrollbar-hide border-b lg:border-b-0 border-gray-100 bg-white">
                {[
@@ -1009,12 +1009,12 @@ const Dashboard: React.FC<DashboardProps> = ({ initialTab = 'overview', initialS
                    { id: 'referrals', label: 'Invite', icon: Users },
                    { id: 'settings', label: 'Settings', icon: Settings },
                ].map((item) => (
-                   <button 
+                   <button
                     key={item.id}
                     onClick={() => handleDashboardTabChange(item.id as DashboardProps['initialTab'])}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all relative whitespace-nowrap flex-shrink-0 ${
-                        activeTab === item.id 
-                        ? 'bg-green-50 text-green-700' 
+                        activeTab === item.id
+                        ? 'bg-green-50 text-green-700'
                         : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                     }`}
                    >

@@ -9,6 +9,7 @@ export interface HttpRequestConfig extends ApiRequestConfig {
   headers?: Record<string, string>;
   query?: QueryParams;
   signal?: AbortSignal;
+  suppressUnauthorizedRedirect?: boolean;
 }
 
 export class ApiClientError extends Error {
@@ -27,9 +28,14 @@ export class ApiClientError extends Error {
 
 type UnauthorizedHandler = () => void;
 let unauthorizedHandler: UnauthorizedHandler | null = null;
+let ignoreUnauthorizedRedirect = false;
 
 export const setUnauthorizedHandler = (handler: UnauthorizedHandler | null): void => {
   unauthorizedHandler = handler;
+};
+
+export const setIgnoreUnauthorizedRedirect = (value: boolean): void => {
+  ignoreUnauthorizedRedirect = value;
 };
 
 const buildUrl = (path: string, query?: QueryParams): string => {
@@ -175,7 +181,12 @@ const request = async <TResponse>(
         responseBody && typeof responseBody === 'object'
           ? extractStringField(responseBody as Record<string, unknown>, ['code', 'errorCode', 'type'])
           : undefined;
-      if (status === 401 && unauthorizedHandler) {
+      if (
+        status === 401 &&
+        unauthorizedHandler &&
+        !config.suppressUnauthorizedRedirect &&
+        !ignoreUnauthorizedRedirect
+      ) {
         unauthorizedHandler();
       }
       throw new ApiClientError(parseErrorMessage(status, responseBody), status, code, responseBody);

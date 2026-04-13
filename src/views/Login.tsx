@@ -47,7 +47,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onCancel, onGoToRegister }) => {
             </svg>
           </div>
           <span className="font-bold text-xl text-gray-900 tracking-tight">
-            Romania<span className="text-green-700">Workflow</span>
+            Task<span className="text-green-700">Hub</span>
           </span>
         </div>
         <div className="text-sm font-medium text-gray-500">

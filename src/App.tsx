@@ -82,6 +82,12 @@ const ProtectedRoute: React.FC<{ isAllowed: boolean; redirectTo: string; childre
   redirectTo,
   children,
 }) => {
+  const isLogoutTransition = window.sessionStorage.getItem('taskhub.logoutTransition') === 'true';
+
+  if (isLogoutTransition) {
+    return <>{children}</>;
+  }
+
   if (!isAllowed) {
     return <Navigate to={redirectTo} replace />;
   }
@@ -130,10 +136,12 @@ const App: React.FC = () => {
   };
 
   const handleLogout = async () => {
+    window.sessionStorage.setItem('taskhub.logoutTransition', 'true');
+    navigate('/');
     await authService.logout();
     setCurrentUser(null);
     setIsLoggedIn(false);
-    navigate('/');
+    window.sessionStorage.removeItem('taskhub.logoutTransition');
   };
 
   const handleViewNavigation = (view: ViewState | string) => {

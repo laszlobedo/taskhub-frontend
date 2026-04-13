@@ -12,13 +12,13 @@ const ROMANIAN_COUNTIES = [
 
 const CATEGORIES = [
   'All Categories',
-  'Home & Garden', 
-  'Transport & Logistics', 
-  'Cleaning & Housekeeping', 
-  'Events & Organization', 
-  'Maintenance & Outdoor', 
-  'Farming & Agriculture', 
-  'Webdesign & Branding', 
+  'Home & Garden',
+  'Transport & Logistics',
+  'Cleaning & Housekeeping',
+  'Events & Organization',
+  'Maintenance & Outdoor',
+  'Farming & Agriculture',
+  'Webdesign & Branding',
   'Social Media & Marketing'
 ];
 
@@ -44,14 +44,14 @@ export const generateMockJobs = (): Task[] => {
         const category = categories[i % categories.length];
         const titleList = titlesByCategory[category] || ["General Task"];
         const title = titleList[i % titleList.length] + (Math.random() > 0.8 ? " ASAP" : "");
-        
+
         const isRemote = ['Webdesign & Branding', 'Social Media & Marketing'].includes(category);
         const location = isRemote ? "Remote" : locations[Math.floor(Math.random() * locations.length)];
         const isBoosted = i <= 3;
 
         const monthIndex = Math.random() > 0.5 ? 10 : 11;
         const day = Math.floor(Math.random() * 30) + 1;
-        
+
         const jobDateObj = new Date(2025, monthIndex, day);
         const year = jobDateObj.getFullYear();
         const m = String(jobDateObj.getMonth() + 1).padStart(2, '0');
@@ -66,25 +66,25 @@ export const generateMockJobs = (): Task[] => {
             price: Math.floor(Math.random() * 800) + 100,
             location: location,
             timeEstimate: Math.floor(Math.random() * 8) + 1 + " Hours",
-            datePosted: formattedDateDisplay, 
+            datePosted: formattedDateDisplay,
             jobDate: jobDateStr,
             isBoosted: isBoosted,
             description: `Looking for a professional to help with ${title.toLowerCase()}. Must be reliable and experienced.`,
-            requirements: ['Previous Experience', 'Reliability', 'Good Communication'], 
+            requirements: ['Previous Experience', 'Reliability', 'Good Communication'],
             images: [`https://picsum.photos/seed/${i}/800/600`, `https://picsum.photos/seed/${i+500}/800/600`],
             author: {
                 name: `User ${i}`,
-                avatar: `https://i.pravatar.cc/150?img=${i % 70}`, 
+                avatar: `https://i.pravatar.cc/150?img=${i % 70}`,
                 rating: (Math.random() * (5.0 - 4.0) + 4.0).toFixed(1) as unknown as number,
                 isVerified: Math.random() > 0.3,
                 completedTasks: Math.floor(Math.random() * 50) + 1,
-                bio: "I am a regular user on RomaniaWorkflow looking for reliable professionals.",
+                bio: "I am a regular user on TaskHub looking for reliable professionals.",
                 joinedDate: "2023",
                 reviewsCount: Math.floor(Math.random() * 20) + 2
             }
         });
     }
-    
+
     return jobs;
 };
 
@@ -96,8 +96,8 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ profile, onClo
     return (
         <div className={`bg-white shadow-2xl h-full flex flex-col ${isStatic ? 'w-full shadow-none border border-gray-100 rounded-3xl overflow-hidden' : 'w-full md:max-w-lg overflow-y-auto animate-slideInRight'}`}>
             {!isStatic && onClose && (
-                <button 
-                onClick={onClose} 
+                <button
+                onClick={onClose}
                 className="absolute top-4 right-4 z-20 p-2 bg-white/20 hover:bg-black/10 rounded-full text-white transition"
             >
                 <X size={24} />
@@ -132,13 +132,13 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ profile, onClo
 
             {/* Contact / View History gombok */}
             <div className="flex gap-3 mb-8">
-                <button 
+                <button
                     onClick={onContact}
                     className="flex-1 bg-green-700 text-white py-2.5 rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/10 text-sm flex items-center justify-center gap-2"
                 >
                         <MessageSquare size={16} /> Contact
                 </button>
-                <button 
+                <button
                     onClick={() => setProfileTab('history')}
                     className="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold hover:bg-gray-50 transition text-sm flex items-center justify-center gap-2"
                 >
@@ -163,7 +163,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ profile, onClo
                                     {profile.bio}
                                 </p>
                             </div>
-                            
+
                             <div>
                                 <h3 className="text-xs font-bold text-gray-400 uppercase mb-3">Badges & Achievements</h3>
                                 <div className="flex gap-2 flex-wrap">
@@ -243,7 +243,7 @@ export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task, onClose })
              <X size={20} />
           </button>
        </div>
-       
+
        <div className="p-6 md:p-8 space-y-8 flex-1">
            {/* Címkék, cím, kategória */}
            <div>
@@ -357,7 +357,7 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   const filteredTasks = MOCK_TASKS.filter(task => {
-    const matchesCategory = selectedCategory === 'All Categories' || task.category === selectedCategory; 
+    const matchesCategory = selectedCategory === 'All Categories' || task.category === selectedCategory;
     const matchesLocation = selectedLocation === 'All Romania' || task.location === selectedLocation || (task.location === 'Remote' && selectedLocation === 'All Romania');
 
     let matchesType = true;
@@ -373,11 +373,11 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
   });
 
   const handleProfileClick = (e: React.MouseEvent, author: Task['author']) => {
-      e.stopPropagation(); 
+      e.stopPropagation();
       e.preventDefault();
       setViewingProfile(author);
   }
-  
+
   const handleContact = () => {
       if (onNavigate) {
           onNavigate('messages');
@@ -401,19 +401,19 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
           <div>
              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 block">Location Type</label>
              <div className="flex flex-col gap-2">
-                 <button 
+                 <button
                   onClick={() => setLocationType('all')}
                   className={`px-4 py-2 rounded-lg text-sm font-bold text-left transition ${locationType === 'all' ? 'bg-green-100 text-green-700' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                  >
                      All Types
                  </button>
-                 <button 
+                 <button
                   onClick={() => setLocationType('remote')}
                   className={`px-4 py-2 rounded-lg text-sm font-bold text-left transition ${locationType === 'remote' ? 'bg-green-100 text-green-700' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                  >
                      Remote Only
                  </button>
-                 <button 
+                 <button
                   onClick={() => setLocationType('onsite')}
                   className={`px-4 py-2 rounded-lg text-sm font-bold text-left transition ${locationType === 'onsite' ? 'bg-green-100 text-green-700' : 'bg-gray-50 text-gray-500 hover:bg-gray-100'}`}
                  >
@@ -425,7 +425,7 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
           <div>
             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 block">Location</label>
             <div className="relative">
-              <select 
+              <select
                   value={selectedLocation}
                   onChange={(e) => setSelectedLocation(e.target.value)}
                   className="w-full bg-white border border-gray-200 text-gray-900 py-3 px-4 rounded-xl appearance-none focus:outline-none focus:border-green-500 font-bold text-sm shadow-sm cursor-pointer"
@@ -446,9 +446,9 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 bg-green-50 rounded-full p-1 text-green-700 pointer-events-none z-10">
                     <Calendar size={14}/>
                 </div>
-                <input 
+                <input
                     ref={dateInputRef}
-                    type="date" 
+                    type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
                     className="w-full bg-white border border-gray-200 text-gray-900 py-3 pl-12 pr-4 rounded-xl focus:outline-none focus:border-green-500 font-bold text-sm shadow-sm cursor-pointer min-h-[48px] appearance-none"
@@ -460,7 +460,7 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
                     </div>
                 )}
             </div>
-            
+
             {selectedDate && (
                 <button onClick={() => setSelectedDate('')} className="text-xs text-red-500 font-bold mt-2 hover:underline flex items-center gap-1">
                     <X size={12}/> Clear Date Filter
@@ -476,8 +476,8 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
                       className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          selectedCategory === cat 
-                          ? 'bg-[#3d7a48] text-white shadow-lg shadow-green-900/10' 
+                          selectedCategory === cat
+                          ? 'bg-[#3d7a48] text-white shadow-lg shadow-green-900/10'
                           : 'text-gray-600 hover:bg-white hover:shadow-sm hover:text-gray-900'
                       }`}
                   >
@@ -491,13 +491,13 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
 
   return (
     <div className="p-4 lg:p-10 max-w-7xl mx-auto relative min-h-screen">
-        
+
       {viewingProfile && (
         <div className="fixed inset-0 z-50 flex justify-end">
             <div className="absolute inset-0 bg-gray-900/60" onClick={() => setViewingProfile(null)}/>
-            <UserProfileView 
-                profile={viewingProfile} 
-                onClose={() => setViewingProfile(null)} 
+            <UserProfileView
+                profile={viewingProfile}
+                onClose={() => setViewingProfile(null)}
                 onContact={handleContact}
             />
         </div>
@@ -546,7 +546,7 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
 
       <div className="flex flex-col md:flex-row gap-8">
         <div className="w-full md:w-72 flex-shrink-0 space-y-8 hidden md:block">
-          
+
           <div className="relative">
               <Search className="absolute left-4 top-3.5 text-gray-400" size={20} />
               <input type="text" placeholder="Search Jobs" className="w-full bg-white pl-12 pr-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:border-green-500 font-medium transition shadow-sm focus:ring-2 focus:ring-green-50/50" />
@@ -565,9 +565,9 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
                     animation: slideInRight 0.3s ease-out forwards;
                 }
             `}</style>
-            
+
             <div className="md:hidden mb-4">
-                <button 
+                <button
                     onClick={() => setShowMobileFilters(true)}
                     className="w-full py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 flex items-center justify-center gap-2 shadow-sm active:bg-gray-50"
                 >
@@ -576,16 +576,16 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
             </div>
 
             {filteredTasks.map((task) => (
-                <div 
-                    key={task.id} 
+                <div
+                    key={task.id}
                     className={`bg-white rounded-[24px] p-2 transition-all hover:shadow-xl hover:-translate-y-1 duration-300 border relative overflow-hidden group ${
-                        task.isBoosted 
-                            ? 'border-yellow-400 shadow-md shadow-yellow-100/50' 
+                        task.isBoosted
+                            ? 'border-yellow-400 shadow-md shadow-yellow-100/50'
                             : 'border-gray-100 shadow-sm'
                     }`}
                 >
                     <div className="flex flex-col lg:flex-row gap-0 lg:gap-6 relative z-10">
-                        
+
                         {/* Left Column: Job Info & Author */}
                         <div className="flex-1 p-4 md:p-6">
                             {/* Author Header */}
@@ -634,18 +634,18 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
                                         {task.category}
                                     </span>
                                 </div>
-                                
+
                                 <h3 className="font-extrabold text-lg md:text-xl lg:text-2xl text-gray-900 mb-2 group-hover:text-green-700 transition-colors leading-tight">
                                     {task.title}
                                 </h3>
-                                
+
                                 {/* Date moved below title for better aesthetic with requested greenish style */}
                                 <div className="mb-3">
                                      <span className="text-[10px] font-bold text-green-800 bg-[#dcfce7] border border-green-200 px-2 py-1 rounded-md inline-flex items-center gap-1 uppercase tracking-wider">
                                         <Calendar size={10} className="text-green-700"/> DATE {task.datePosted}
                                      </span>
                                 </div>
-                                
+
                                 <p className="text-gray-500 text-sm mb-0 line-clamp-2 leading-relaxed">{task.description}</p>
                             </div>
                         </div>
@@ -656,8 +656,8 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
                                 <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Budget</span>
                                 <span className="block text-xl md:text-2xl font-extrabold text-green-700">{task.price} <span className="text-sm text-gray-500 font-bold">RON</span></span>
                             </div>
-                            
-                            <button 
+
+                            <button
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     setSelectedTask(task);
@@ -671,7 +671,7 @@ const FindTasks: React.FC<FindTasksProps> = ({ onNavigate, isLoggedIn, onToggleM
                     </div>
                 </div>
             ))}
-            
+
             {filteredTasks.length === 0 && (
                 <div className="text-center py-20 bg-white rounded-[20px] border border-gray-100">
                     <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">

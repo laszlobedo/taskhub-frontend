@@ -48,11 +48,11 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel }) => 
           case 0: // Ügyfél vagy munkavállaló
             return (
                 <div className="animate-fadeIn">
-                       <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 text-center mb-4">Join Romania Workflow</h1>
+                       <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 text-center mb-4">Join TaskHub</h1>
                        <p className="text-gray-500 text-center mb-12 text-lg">How do you want to use the platform?</p>
 
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                           <div 
+                           <div
                                 onClick={() => handleTypeSelect('client')}
                                 className="bg-white border-2 border-gray-100 p-8 rounded-3xl cursor-pointer hover:border-green-600 hover:shadow-xl hover:-translate-y-1 transition-all group"
                            >
@@ -63,7 +63,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel }) => 
                                 <p className="text-gray-500">Find trusted professionals for your projects, home repairs, and tasks.</p>
                            </div>
 
-                           <div 
+                           <div
                                 onClick={() => handleTypeSelect('worker')}
                                 className="bg-white border-2 border-gray-100 p-8 rounded-3xl cursor-pointer hover:border-green-600 hover:shadow-xl hover:-translate-y-1 transition-all group"
                            >
@@ -76,7 +76,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel }) => 
                        </div>
                    </div>
             );
-          
+
           case 1: // Név, email, jelszó
             return (
                 <div className="animate-fadeIn max-w-md mx-auto w-full">
@@ -147,7 +147,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel }) => 
                     </div>
                 </div>
             );
-        
+
         case 3: // CV feltöltés (opcionális), majd kész
              return (
                 <div className="animate-fadeIn max-w-md mx-auto w-full">
@@ -171,7 +171,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel }) => 
                     </div>
                 </div>
             );
-        
+
           default:
             return null;
       }
@@ -186,7 +186,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel }) => 
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                 </div>
-                <span className="font-bold text-xl text-gray-900 tracking-tight">Romania<span className="text-green-700">Workflow</span></span>
+                <span className="font-bold text-xl text-gray-900 tracking-tight">Task<span className="text-green-700">Hub</span></span>
             </div>
             <div className="text-sm font-medium text-gray-500">
                 <span className="hidden md:inline">Already have an account? </span>
@@ -200,17 +200,17 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel }) => 
 
                {step > 0 && (
                    <div className="max-w-md mx-auto mt-8 flex justify-between items-center pt-6 border-t border-gray-100">
-                        <button 
+                        <button
                             onClick={prevStep}
                             className="text-gray-500 font-bold text-sm hover:text-gray-900 px-4 py-2"
                         >
                             Back
                         </button>
-                        
+
                         <div className="flex items-center gap-3">
                             {/* 2. és 3. lépésnél: Kihagyom */}
                             {(step === 2 || step === 3) && (
-                                <button 
+                                <button
                                     onClick={skipStep}
                                     className="text-gray-400 font-bold text-sm hover:text-gray-600 px-4 py-2"
                                 >
@@ -218,7 +218,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel }) => 
                                 </button>
                             )}
 
-                            <button 
+                            <button
                                 onClick={nextStep}
                                 disabled={loading}
                                 className="bg-green-700 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/20 flex items-center gap-2"

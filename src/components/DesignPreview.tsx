@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
-import { 
-  Palette, Grid, LogOut, Star, User, Lock, Send, Search, CheckCircle, Award, LayoutDashboard, Calendar, Mail, Settings, Users, Menu, PlusCircle, Edit3, Trash2, Share2, Filter, Upload, Download, AlertCircle, Info, Zap, ShieldCheck, Briefcase, Clock, MapPin, DollarSign, Globe, Phone, Camera, FileText, Layers, Move, Monitor 
+import {
+  Palette, Grid, LogOut, Star, User, Lock, Send, Search, CheckCircle, Award, LayoutDashboard, Calendar, Mail, Settings, Users, Menu, PlusCircle, Edit3, Trash2, Share2, Filter, Upload, Download, AlertCircle, Info, Zap, ShieldCheck, Briefcase, Clock, MapPin, DollarSign, Globe, Phone, Camera, FileText, Layers, Move, Monitor
 } from 'lucide-react';
 
 import Landing from '../views/Landing';
@@ -66,7 +66,7 @@ const Artboard = ({ title, url, children, width = "w-full", height = "h-auto", c
                         <Lock size={10} className="text-green-500" /> https://{url}
                     </div>
                 </div>
-                <div className="w-10"></div> 
+                <div className="w-10"></div>
             </div>
             <div className={`relative ${height} bg-white overflow-hidden`}>
             {children}
@@ -98,7 +98,7 @@ const IconShowcase = ({ icon: Icon, name, size = "24px" }: { icon: any, name: st
 
 const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
   const [activeSection, setActiveSection] = useState<string>('brand');
-  
+
   const tocLinks = [
       { id: 'brand', label: '01. Brand' },
       { id: 'typography', label: '02. Typography' },
@@ -132,7 +132,7 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
   useEffect(() => {
     const handleScroll = () => {
         const scrollPosition = window.scrollY + 200;
-        
+
         for (const link of tocLinks) {
             const element = document.getElementById(link.id);
             if (element) {
@@ -151,10 +151,10 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] font-sans pb-40 relative selection:bg-green-200 selection:text-green-900">
-      
-      <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-0" style={{ 
-            backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', 
-            backgroundSize: '40px 40px' 
+
+      <div className="fixed inset-0 opacity-[0.03] pointer-events-none z-0" style={{
+            backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
       }}></div>
 
       <header className="bg-white/80 backdrop-blur-md text-gray-900 h-20 px-8 fixed top-0 left-0 right-0 z-[100] flex justify-between items-center shadow-sm border-b border-gray-200">
@@ -166,7 +166,7 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
              </div>
         </div>
         <div className="flex items-center gap-6">
-            <button 
+            <button
                 onClick={onExit}
                 className="group bg-white hover:bg-red-50 text-gray-500 hover:text-red-600 border border-gray-200 hover:border-red-200 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-sm"
             >
@@ -179,12 +179,12 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           {tocLinks.map((link) => {
                 const isActive = activeSection === link.id;
                 return (
-                <button 
-                    key={link.id} 
+                <button
+                    key={link.id}
                     onClick={() => scrollToSection(link.id)}
                     className={`relative whitespace-nowrap px-4 py-1.5 text-xs font-bold rounded-full transition-all duration-300 ${
-                        isActive 
-                        ? 'bg-gray-900 text-white shadow-md scale-105' 
+                        isActive
+                        ? 'bg-gray-900 text-white shadow-md scale-105'
                         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                 >
@@ -195,19 +195,19 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
       </nav>
 
       <main className="block pt-48 px-6 lg:px-24 max-w-[1920px] mx-auto space-y-32 relative z-10">
-          
+
           <section id="brand" className="scroll-mt-48">
-            <SectionHeader 
-                title="Brand Identity" 
-                subtitle="The Romania Workflow brand is built on three pillars: Trust, Simplicity, and Local Growth. The visual language uses clean geometry (hexagons) and natural, professional greens."
+            <SectionHeader
+                title="Brand Identity"
+                subtitle="The TaskHub brand is built on three pillars: Trust, Simplicity, and Local Growth. The visual language uses clean geometry (hexagons) and natural, professional greens."
                 icon={Award}
                 badge="Core Foundation"
             />
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
                 <div className="bg-white p-12 rounded-[40px] shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center space-y-8 relative overflow-hidden">
                     <div className="absolute inset-0 bg-green-50/30 opacity-50 pattern-checkered pointer-events-none"></div>
-                    
+
                     <div className="scale-150 p-8">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-green-700 rounded-2xl flex items-center justify-center shadow-green-700/30 shadow-lg relative overflow-hidden">
@@ -216,7 +216,7 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
                                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                                 </svg>
                             </div>
-                            <span className="font-bold text-3xl tracking-tight text-gray-900">Romania<span className="text-green-700">Workflow</span></span>
+                            <span className="font-bold text-3xl tracking-tight text-gray-900">Task<span className="text-green-700">Hub</span></span>
                         </div>
                     </div>
 
@@ -262,13 +262,13 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           </section>
 
           <section id="typography" className="scroll-mt-48">
-            <SectionHeader 
-                title="Typography System" 
+            <SectionHeader
+                title="Typography System"
                 subtitle="We utilize the 'Inter' variable font family. It is chosen for its excellent legibility on computer screens and its modern, neutral aesthetic. We utilize a tight tracking for headings to give a punchy, modern feel."
                 icon={FileText}
                 badge="Inter Family"
             />
-            
+
             <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
                 <div className="grid grid-cols-1 lg:grid-cols-12">
                     <div className="col-span-4 bg-gray-50 p-12 border-r border-gray-100 flex flex-col justify-between">
@@ -276,7 +276,7 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
                             <div className="text-[120px] font-black text-gray-900 leading-none mb-4 tracking-tighter">Aa</div>
                             <h3 className="text-3xl font-bold text-gray-900 mb-2">Inter</h3>
                             <p className="text-gray-600 font-medium mb-8">Sans-serif / Variable / Grotesque</p>
-                            
+
                             <div className="space-y-4">
                                 <div>
                                     <span className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Weights Used</span>
@@ -300,7 +300,7 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
                             { label: 'Heading 1', size: '48px', weight: 'Bold', sample: 'Find the perfect pro.', class: 'text-5xl font-bold tracking-tight text-gray-900' },
                             { label: 'Heading 2', size: '30px', weight: 'Bold', sample: 'Recent Activity', class: 'text-3xl font-bold text-gray-900' },
                             { label: 'Heading 3', size: '24px', weight: 'Bold', sample: 'Job Details', class: 'text-2xl font-bold text-gray-900' },
-                            { label: 'Body Large', size: '18px', weight: 'Regular', sample: 'Romania Workflow connects clients with trusted pros.', class: 'text-lg text-gray-700' },
+                            { label: 'Body Large', size: '18px', weight: 'Regular', sample: 'TaskHub connects clients with trusted pros.', class: 'text-lg text-gray-700' },
                             { label: 'Body Small', size: '14px', weight: 'Medium', sample: 'Verified • 2 days ago • Sector 1', class: 'text-sm font-medium text-gray-600' },
                         ].map((type, i) => (
                             <div key={i} className="flex items-baseline gap-12 group hover:bg-gray-50 p-4 rounded-xl -mx-4 transition-colors border-b border-gray-100 last:border-0 pb-8 last:pb-0">
@@ -319,13 +319,13 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           </section>
 
           <section id="color" className="scroll-mt-48">
-            <SectionHeader 
-                title="Color Palette" 
+            <SectionHeader
+                title="Color Palette"
                 subtitle="Our palette is derived from nature but optimized for digital screens. The primary green inspires growth and money, while the slate neutrals provide a professional, modern backdrop."
                 icon={Palette}
                 badge="Accessibility Compliant"
             />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
                 <ColorSwatch name="Forest Green" hex="#14532d" usage="Primary Text, Headers" className="bg-green-900" />
                 <ColorSwatch name="Kelly Green" hex="#15803d" usage="Primary Buttons, Accents" className="bg-green-700" />
@@ -372,7 +372,7 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
                         ))}
                     </div>
                     <p className="text-sm text-gray-500 mt-4 leading-relaxed">
-                        We use the <strong>Slate</strong> scale from Tailwind CSS. It introduces a subtle blue tint to the grays, making the interface feel cooler and more premium compared to standard neutral grays. 
+                        We use the <strong>Slate</strong> scale from Tailwind CSS. It introduces a subtle blue tint to the grays, making the interface feel cooler and more premium compared to standard neutral grays.
                         <br/><strong>Gray-50</strong> is used for page backgrounds, <strong>Gray-200</strong> for borders, and <strong>Gray-500</strong> for secondary text.
                     </p>
                 </div>
@@ -380,16 +380,16 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           </section>
 
           <section id="icons" className="scroll-mt-48">
-            <SectionHeader 
-                title="Iconography" 
+            <SectionHeader
+                title="Iconography"
                 subtitle="We use the Lucide React library. Icons are rendered with a 1.5px or 2px stroke width for clarity. They are used to support navigation, actions, and status indications."
                 icon={Grid}
                 badge="Lucide React"
             />
-            
+
             <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 p-12">
                 <div className="space-y-12">
-                    
+
                     <div>
                         <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-6 border-b border-gray-100 pb-2">Navigation & Menu</h4>
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
@@ -450,15 +450,15 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           </section>
 
           <section id="labels" className="scroll-mt-48">
-            <SectionHeader 
-                title="Labels & Badges" 
+            <SectionHeader
+                title="Labels & Badges"
                 subtitle="Badges are used to communicate status, category, or attributes of an item. They are designed to be compact and highly readable with high-contrast colors."
                 icon={Award}
             />
-            
+
             <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 p-12">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                    
+
                     <div className="space-y-6">
                         <h4 className="font-bold text-gray-900 border-b border-gray-100 pb-2">Status Indicators</h4>
                         <div className="space-y-3">
@@ -524,19 +524,19 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           </section>
 
           <section id="components" className="scroll-mt-48">
-            <SectionHeader 
-                title="Component Library" 
+            <SectionHeader
+                title="Component Library"
                 subtitle="Reusable atomic elements built for consistency and speed. Our components are designed with a mobile-first approach, ensuring large touch targets and clear hierarchy."
                 icon={Grid}
             />
-            
+
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
                 <div className="bg-white p-10 rounded-[32px] border border-gray-100 shadow-sm">
                     <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-4">
                         <h3 className="font-bold text-xl text-gray-900">Buttons</h3>
                         <span className="text-xs font-mono text-gray-400">component/Button</span>
                     </div>
-                    
+
                     <div className="space-y-8">
                         <div className="grid grid-cols-2 gap-8 items-center">
                             <div>
@@ -564,7 +564,7 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
                         <h3 className="font-bold text-xl text-gray-900">Form Inputs</h3>
                         <span className="text-xs font-mono text-gray-400">component/Input</span>
                     </div>
-                    
+
                     <div className="space-y-6">
                         <div>
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Default Input</label>
@@ -597,7 +597,7 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
                         <h3 className="font-bold text-xl text-gray-900">Card Architecture</h3>
                         <span className="text-xs font-mono text-gray-400">structure/Card</span>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                         <div className="relative border-2 border-dashed border-gray-200 rounded-xl p-6 bg-gray-50">
                             <span className="absolute top-2 left-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Padding: 24px</span>
@@ -640,12 +640,12 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           </section>
 
           <section id="motion" className="scroll-mt-48">
-            <SectionHeader 
-                title="Motion System" 
+            <SectionHeader
+                title="Motion System"
                 subtitle="Animations are used to guide attention, not distract. We use snappy, ease-out curves (approx 300ms) for most interactions to feel responsive."
                 icon={Move}
             />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {[
                     { name: 'Fade In Up', class: 'animate-fadeIn', desc: 'Used for page loads and staggered lists.' },
@@ -664,14 +664,14 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           </section>
 
           <section id="landing" className="scroll-mt-48">
-              <SectionHeader 
-                title="Page: Landing" 
+              <SectionHeader
+                title="Page: Landing"
                 subtitle="The primary conversion point. Designed to segment users immediately into 'Workers' or 'Clients' with a clear 50/50 split hero section."
-                icon={Monitor} 
+                icon={Monitor}
               />
-              <Artboard 
-                title="Romania Workflow - Home" 
-                url="romaniaworkflow.com" 
+              <Artboard
+                title="TaskHub - Home"
+                url="taskhub.com"
                 height="h-auto"
                 annotations={[
                     { title: "Split Hero", text: "50/50 split allows equal weight for both user personas (Hire vs Work).", top: "20%", position: "right" },
@@ -683,16 +683,16 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           </section>
 
           <section id="app" className="scroll-mt-48">
-              <SectionHeader 
-                title="Page: Dashboard & Marketplace" 
+              <SectionHeader
+                title="Page: Dashboard & Marketplace"
                 subtitle="Complex interfaces requiring high data density while maintaining clarity. We use a card-based layout with a sidebar for filters and navigation."
-                icon={LayoutDashboard} 
+                icon={LayoutDashboard}
               />
-              
+
               <div className="space-y-32">
-                  <Artboard 
-                    title="User Dashboard" 
-                    url="romaniaworkflow.com/dashboard" 
+                  <Artboard
+                    title="User Dashboard"
+                    url="taskhub.com/dashboard"
                     height="h-auto"
                     annotations={[
                         { title: "Widget Grid", text: "Modular bento-grid layout adapts to different content types.", top: "30%", position: "right" }
@@ -701,9 +701,9 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
                       <Dashboard initialTab="overview" />
                   </Artboard>
 
-                  <Artboard 
-                    title="Find Jobs (Marketplace)" 
-                    url="romaniaworkflow.com/jobs" 
+                  <Artboard
+                    title="Find Jobs (Marketplace)"
+                    url="taskhub.com/jobs"
                     height="h-[800px]"
                     className="overflow-y-auto custom-scrollbar"
                     annotations={[
@@ -717,14 +717,14 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           </section>
 
           <section id="profile" className="scroll-mt-48">
-              <SectionHeader 
-                title="Page: User Profile" 
+              <SectionHeader
+                title="Page: User Profile"
                 subtitle="Designed to build trust immediately. High-emphasis verification badges and clear call-to-actions."
-                icon={User} 
+                icon={User}
               />
-              <Artboard 
-                title="User Profile View" 
-                url="romaniaworkflow.com/u/alexandru" 
+              <Artboard
+                title="User Profile View"
+                url="taskhub.com/u/alexandru"
                 height="h-auto"
                 className="bg-gray-50"
                 annotations={[
@@ -738,14 +738,14 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
           </section>
 
           <section id="post" className="scroll-mt-48">
-              <SectionHeader 
-                title="Flow: Post a Task" 
+              <SectionHeader
+                title="Flow: Post a Task"
                 subtitle="A wizard-style interface broken into bite-sized steps to reduce drop-off rates."
-                icon={PlusCircle} 
+                icon={PlusCircle}
               />
-              <Artboard 
-                title="Post New Job" 
-                url="romaniaworkflow.com/post" 
+              <Artboard
+                title="Post New Job"
+                url="taskhub.com/post"
                 height="h-auto"
                 annotations={[
                     { title: "Progress Stepper", text: "Visual indicator keeps users motivated and aware of how much is left.", top: "10%", position: "left" },
@@ -759,19 +759,19 @@ const DesignPreview: React.FC<DesignPreviewProps> = ({ onExit }) => {
       </main>
 
       <footer className="bg-[#111827] text-white py-24 text-center mt-32 border-t-8 border-green-600 relative overflow-hidden">
-           <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" 
-                style={{ 
-                    backgroundImage: 'radial-gradient(circle at 50% 50%, white 1px, transparent 1px)', 
-                    backgroundSize: '40px 40px' 
+           <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none"
+                style={{
+                    backgroundImage: 'radial-gradient(circle at 50% 50%, white 1px, transparent 1px)',
+                    backgroundSize: '40px 40px'
                 }}>
            </div>
 
            <div className="max-w-4xl mx-auto px-6 relative z-10 flex flex-col items-center justify-center">
                <div className="w-24 h-24 bg-green-600 rounded-3xl flex items-center justify-center font-bold text-5xl text-white mb-8 shadow-2xl shadow-green-900/50">B</div>
-               
-               <h2 className="text-3xl font-bold mb-4 tracking-tight">Romania Workflow Design System</h2>
+
+               <h2 className="text-3xl font-bold mb-4 tracking-tight">TaskHub Design System</h2>
                <p className="text-gray-400 mb-8 max-w-lg">A comprehensive UI/UX framework designed for trust, speed, and local growth.</p>
-               
+
                <div className="flex items-center gap-2 text-sm text-gray-500 font-mono border border-gray-800 px-4 py-2 rounded-full bg-black/20">
                    <span>Designed by</span>
                    <span className="text-green-400 font-bold">Boabo Webstudio</span>

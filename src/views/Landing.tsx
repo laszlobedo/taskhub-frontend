@@ -48,7 +48,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
 
   const reviews = [
       { text: "I found an electrician in 10 minutes. He arrived within an hour and fixed my issue perfectly!", author: "Andrei M.", location: "București", role: "Employer" },
-      { text: "RomaniaWorkflow helped me find consistent freelance web design work. The platform is super easy to use.", author: "Elena S.", location: "Cluj-Napoca", role: "Worker" },
+      { text: "TaskHub helped me find consistent freelance web design work. The platform is super easy to use.", author: "Elena S.", location: "Cluj-Napoca", role: "Worker" },
       { text: "Great experience getting my furniture assembled. Saved me so much time and frustration.", author: "Mihai D.", location: "Timișoara", role: "Employer" },
       { text: "The payments are secure and I feel safe using the platform for all my home repairs.", author: "Cristina V.", location: "Iași", role: "Employer" },
       { text: "As a student, this is the best way to earn extra money on weekends. Highly recommend!", author: "Radu I.", location: "Brașov", role: "Worker" },
@@ -153,7 +153,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                     <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center shadow-md relative overflow-hidden">
                         <Hexagon size={20} className="text-white fill-white relative z-10" strokeWidth={0} />
                     </div>
-                    <span className="font-bold text-lg tracking-tight">Romania<span className="text-green-700">Workflow</span></span>
+                    <span className="font-bold text-lg tracking-tight">Task<span className="text-green-700">Hub</span></span>
                 </div>
 
                 {!isLoggedIn ? (
@@ -230,7 +230,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                <Hexagon size={20} className="text-white fill-white relative z-10" strokeWidth={0} />
                <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
             </div>
-            <span className="font-bold text-xl tracking-tight">Romania<span className="text-green-700">Workflow</span></span>
+            <span className="font-bold text-xl tracking-tight">Task<span className="text-green-700">Hub</span></span>
         </div>
 
         <div className="flex bg-gray-100/80 p-1 rounded-xl md:rounded-full relative backdrop-blur-sm shadow-inner w-full md:w-auto overflow-x-auto md:overflow-visible justify-between md:justify-start">
@@ -561,7 +561,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                             <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center relative overflow-hidden">
                                 <Hexagon size={20} className="text-white fill-white relative z-10" strokeWidth={0} />
                             </div>
-                            <span className="font-bold text-xl text-gray-900 tracking-tight">Romania<span className="text-green-700">Workflow</span></span>
+                            <span className="font-bold text-xl text-gray-900 tracking-tight">Task<span className="text-green-700">Hub</span></span>
                         </div>
                         <p className="text-gray-500 max-w-sm mb-6">
                             Connecting people who need help with trusted local professionals. The easiest way to get things done in Romania.
@@ -617,7 +617,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
               </div>
 
               <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400 text-center md:text-left">
-                  <p>© 2025 Romania Workflow. All rights reserved.</p>
+                  <p>© 2025 TaskHub. All rights reserved.</p>
                   <div className="flex items-center gap-2">
                       <p className="font-medium text-gray-500">Designed by <span className="text-green-700 font-bold">Boabo Webstudio</span></p>
                       <span className="text-gray-300 hidden md:inline">|</span>

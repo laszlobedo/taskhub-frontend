@@ -2,8 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Camera, MapPin, Star, ShieldCheck, CheckCircle, Clock, Briefcase, Languages, ThumbsUp, Calendar, Mail, Phone, Globe, Edit3, Share2 } from 'lucide-react';
 import type { MeResponseDto } from '@/api/dto/user.dto';
 import { authService } from '../api/services/auth.service';
+import { useNavigate } from 'react-router-dom';
+import {
+  LANGUAGE_LEVEL_COLOR,
+  LANGUAGE_LEVEL_LABEL,
+  LanguageLevel,
+  normalizeLanguageLevel,
+} from '../constants/languageLevels';
 
 const Profile: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews'>('overview');
   const [currentUser, setCurrentUser] = useState<MeResponseDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -171,7 +179,10 @@ const Profile: React.FC = () => {
                               <button className="flex-1 md:flex-none px-6 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-700 hover:bg-gray-50 transition shadow-sm flex items-center justify-center gap-2">
                                   <Share2 size={18}/> Share
                               </button>
-                              <button className="flex-1 md:flex-none px-6 py-3 bg-green-700 text-white rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/20 flex items-center justify-center gap-2">
+                              <button
+                                onClick={() => navigate('/dashboard/settings')}
+                                className="flex-1 md:flex-none px-6 py-3 bg-green-700 text-white rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/20 flex items-center justify-center gap-2"
+                              >
                                   <Edit3 size={18} /> Edit Profile
                               </button>
                           </div>
@@ -203,7 +214,7 @@ const Profile: React.FC = () => {
                           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Jobs Done</span>
                       </div>
                   </div>
-                  <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-row items-center gap-4 hover:border-green-200 transition-colors">
+                  {/* <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-row items-center gap-4 hover:border-green-200 transition-colors">
                       <div className="text-green-600 flex-shrink-0">
                           <ThumbsUp size={28}/>
                       </div>
@@ -220,7 +231,7 @@ const Profile: React.FC = () => {
                           <span className="block text-2xl font-extrabold text-gray-900 leading-none">1h</span>
                           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Response Time</span>
                       </div>
-                  </div>
+                  </div> */}
               </div>
 
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -343,39 +354,59 @@ const Profile: React.FC = () => {
               <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2"><Languages size={20}/> Languages</h3>
                   <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                          <span className="text-sm font-bold text-gray-700">Romanian</span>
-                          <span className="text-xs text-green-700 font-bold bg-green-50 px-2 py-1 rounded">Native</span>
-                      </div>
-                      <div className="w-full bg-gray-100 rounded-full h-1.5">
-                          <div className="bg-green-500 h-1.5 rounded-full w-full"></div>
-                      </div>
+                    {currentUser.languages && currentUser.languages.length > 0 ? (
+                      currentUser.languages.map((item) => {
+                        const level = normalizeLanguageLevel(item.level);
+                        const levelLabel = LANGUAGE_LEVEL_LABEL[level];
+                        const levelColor = LANGUAGE_LEVEL_COLOR[level];
+                        const widthPercent = (level / LanguageLevel.Native) * 100;
 
-                      <div className="flex justify-between items-center mt-2">
-                          <span className="text-sm font-bold text-gray-700">English</span>
-                          <span className="text-xs text-blue-700 font-bold bg-blue-50 px-2 py-1 rounded">Advanced</span>
-                      </div>
-                      <div className="w-full bg-gray-100 rounded-full h-1.5">
-                          <div className="bg-blue-500 h-1.5 rounded-full w-3/4"></div>
-                      </div>
+                        return (
+                          <div key={`${item.language}-${item.level}`} className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm font-bold text-gray-700">{item.language}</span>
+                              <span className={`text-xs font-bold px-2 py-1 rounded ${levelColor.badge}`}>
+                                {levelLabel}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-100 rounded-full h-1.5">
+                              <div
+                                className={`${levelColor.bar} h-1.5 rounded-full`}
+                                style={{ width: `${widthPercent}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-sm text-gray-500 font-medium">No languages added yet.</p>
+                    )}
                   </div>
               </div>
 
               <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
                    <h3 className="font-bold text-gray-900 text-lg mb-4">Verifications</h3>
                    <div className="space-y-3">
-                       <div className="flex items-center gap-3 text-sm text-gray-700">
-                           <CheckCircle size={18} className="text-green-600" /> ID Verified
-                       </div>
-                       <div className="flex items-center gap-3 text-sm text-gray-700">
-                           <CheckCircle size={18} className="text-green-600" /> Email Verified
-                       </div>
-                       <div className="flex items-center gap-3 text-sm text-gray-700">
-                           <CheckCircle size={18} className="text-green-600" /> Phone Verified
-                       </div>
-                       <div className="flex items-center gap-3 text-sm text-gray-700">
-                           <CheckCircle size={18} className="text-green-600" /> Background Check
-                       </div>
+                      <div className={`flex items-center gap-3 text-sm text-gray-700`}>
+                          {currentUser.is_verified ? (
+                            <CheckCircle size={18} className="text-green-600" />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full bg-yellow-100 border border-yellow-300 text-yellow-700 flex items-center justify-center text-xs font-extrabold">
+                              !
+                            </div>
+                          )}
+                          {currentUser.is_verified ? 'ID Verified' : 'ID verification needed'}
+                      </div>
+                      <div className={`flex items-center gap-3 text-sm text-gray-700`}>
+                          {currentUser.email_verified_at ? (
+                            <CheckCircle size={18} className="text-green-600" />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full bg-yellow-100 border border-yellow-300 text-yellow-700 flex items-center justify-center text-xs font-extrabold">
+                              !
+                            </div>
+                          )}
+                          {currentUser.email_verified_at ? 'Email Verified' : 'Email verification needed'}
+                      </div>
                    </div>
                </div>
 
