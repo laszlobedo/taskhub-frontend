@@ -1,20 +1,116 @@
-
-import React, { useState } from 'react';
-import { Camera, Save, MapPin, Star, ShieldCheck, CheckCircle, Clock, Image as ImageIcon, Settings, Briefcase, Languages, Wrench, ThumbsUp, Calendar, Mail, Phone, Globe, Edit3, Share2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Camera, MapPin, Star, ShieldCheck, CheckCircle, Clock, Briefcase, Languages, ThumbsUp, Calendar, Mail, Phone, Globe, Edit3, Share2 } from 'lucide-react';
+import type { MeResponseDto } from '@/api/dto/user.dto';
+import { authService } from '../api/services/auth.service';
 
 const Profile: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'portfolio' | 'reviews'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'reviews'>('overview');
+  const [currentUser, setCurrentUser] = useState<MeResponseDto | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const skills = [
-      "Furniture Assembly", "Home Repairs", "Drilling", "Mounting TV", "Plumbing Basics", "Painting"
-  ];
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProfile = async () => {
+      try {
+        setIsLoading(true);
+        setErrorMessage(null);
+        const response = await authService.me();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setCurrentUser(response);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        setErrorMessage(error instanceof Error ? error.message : 'Failed to load profile data.');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const env = ((import.meta as ImportMeta & { env?: Record<string, string | boolean | undefined> }).env ?? {}) as Record<string, string | boolean | undefined>;
+  const imageBaseUrl = (typeof env.VITE_API_IMAGE_URL === 'string' ? env.VITE_API_IMAGE_URL : '').trim().replace(/\/+$/, '');
+  const profilePicturePath = currentUser?.profile_picture?.trim();
+  const coverPicturePath = currentUser?.cover_picture?.trim();
+  const isAbsoluteProfileUrl = Boolean(profilePicturePath?.match(/^https?:\/\//i));
+  const isAbsoluteCoverUrl = Boolean(coverPicturePath?.match(/^https?:\/\//i));
+  const profileImage = profilePicturePath
+    ? (isAbsoluteProfileUrl ? profilePicturePath : `${imageBaseUrl}/${profilePicturePath.replace(/^\/+/, '')}`)
+    : 'https://via.placeholder.com/150';
+  const coverImage = coverPicturePath
+    ? (isAbsoluteCoverUrl ? coverPicturePath : `${imageBaseUrl}/${coverPicturePath.replace(/^\/+/, '')}`)
+    : 'https://via.placeholder.com/150';
+  const displayName = currentUser?.name ?? currentUser?.username;
+  const displayEmail = currentUser?.email;
+  const joinedAtLabel = (() => {
+    const raw = currentUser?.created_at;
+    if (!raw) {
+      return 'Joined recently';
+    }
+    const date = new Date(raw);
+    if (Number.isNaN(date.getTime())) {
+      return 'Joined recently';
+    }
+
+    const formatted = new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      year: 'numeric',
+    }).format(date);
+
+    return `Joined ${formatted}`;
+  })();
+
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-8 max-w-[1600px] mx-auto min-h-screen">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-gray-600 font-medium">
+          Loading profile...
+        </div>
+      </div>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <div className="p-4 md:p-8 max-w-[1600px] mx-auto min-h-screen">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-red-700 font-medium">
+          {errorMessage}
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser || !displayName || !displayEmail) {
+    return (
+      <div className="p-4 md:p-8 max-w-[1600px] mx-auto min-h-screen">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-gray-600 font-medium">
+          Profile data is unavailable. Please refresh the page.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 max-w-[1600px] mx-auto animate-fadeIn min-h-screen">
       <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden mb-6 relative group">
           <div className="h-56 md:h-80 bg-gradient-to-r from-gray-900 to-gray-800 relative">
              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
-             <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop" className="w-full h-full object-cover opacity-40" />
+             <img src={coverImage} className="w-full h-full object-cover opacity-40" />
              <button className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition opacity-0 group-hover:opacity-100">
                  <Camera size={16}/> Edit Cover
              </button>
@@ -24,7 +120,7 @@ const Profile: React.FC = () => {
               <div className="flex flex-col md:flex-row items-start gap-6">
                   <div className="relative group/avatar -mt-16 md:-mt-20 flex-shrink-0 z-10">
                       <div className="p-1.5 bg-white rounded-[2rem] shadow-sm">
-                        <img src="https://i.pravatar.cc/150?img=68" className="w-32 h-32 md:w-40 md:h-40 rounded-[1.8rem] object-cover border border-gray-100 shadow-inner" />
+                        <img src={profileImage} className="w-32 h-32 md:w-40 md:h-40 rounded-[1.8rem] object-cover border border-gray-100 shadow-inner" />
                       </div>
                       <div className="absolute bottom-4 right-4 bg-blue-500 text-white p-2 rounded-full border-4 border-white shadow-sm" title="Identity Verified">
                           <ShieldCheck size={20} fill="currentColor" />
@@ -39,21 +135,35 @@ const Profile: React.FC = () => {
                           <div>
                               <div className="flex flex-wrap items-center gap-3 mb-1">
                                 <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 leading-tight">
-                                    Alexandru Popescu
+                                    {displayName}
                                 </h1>
-                                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border border-green-200 whitespace-nowrap">
-                                    <CheckCircle size={12} fill="currentColor" className="text-green-500"/> Verified Pro
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1 border whitespace-nowrap ${
+                                    currentUser.is_verified
+                                      ? 'bg-green-100 text-green-700 border-green-200'
+                                      : 'bg-yellow-100 text-yellow-700 border-yellow-200'
+                                  }`}
+                                >
+                                    <CheckCircle
+                                      size={12}
+                                      fill="currentColor"
+                                      className={currentUser.is_verified ? 'text-green-500' : 'text-yellow-500'}
+                                    />
+                                    {currentUser.is_verified ? 'Verified Pro' : 'Verification needed'}
                                 </span>
                               </div>
-                              
-                              <p className="text-gray-500 font-medium text-lg">Expert Handyman & Furniture Assembler</p>
-                              
+
+                              <p className="text-gray-500 font-medium text-lg">{currentUser.bio}</p>
+
                               <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-500 font-bold">
-                                  <span className="flex items-center gap-1.5"><MapPin size={16} className="text-gray-400"/> București, Sector 1</span>
+                                  <span className="flex items-center gap-1.5"><MapPin size={16} className="text-gray-400"/> {currentUser.address}</span>
                                   <span className="hidden md:inline text-gray-300">|</span>
-                                  <span className="flex items-center gap-1.5"><Calendar size={16} className="text-gray-400"/> Joined March 2023</span>
+                                  <span className="flex items-center gap-1.5"><Calendar size={16} className="text-gray-400"/> {joinedAtLabel}</span>
                                   <span className="hidden md:inline text-gray-300">|</span>
-                                  <span className="text-green-600 flex items-center gap-1.5"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> Available for work</span>
+                                  <span className={`flex items-center gap-1.5 ${currentUser.is_verified ? 'text-green-600' : 'text-yellow-700'}`}>
+                                    <div className={`w-2 h-2 rounded-full animate-pulse ${currentUser.is_verified ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                                    {currentUser.is_verified ? 'Available for work' : 'Verification needed'}
+                                  </span>
                               </div>
                           </div>
 
@@ -117,15 +227,14 @@ const Profile: React.FC = () => {
                   <div className="flex border-b border-gray-100 overflow-x-auto scrollbar-hide">
                       {[
                           { id: 'overview', label: 'Overview' },
-                          { id: 'portfolio', label: 'Portfolio' },
                           { id: 'reviews', label: 'Reviews' }
                       ].map((tab: any) => (
-                          <button 
+                          <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`flex-1 min-w-[120px] px-6 py-4 font-bold text-sm border-b-2 transition-colors flex items-center justify-center gap-2 ${
-                                activeTab === tab.id 
-                                ? 'border-green-700 text-green-700 bg-green-50/30' 
+                                activeTab === tab.id
+                                ? 'border-green-700 text-green-700 bg-green-50/30'
                                 : 'border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                             }`}
                           >
@@ -140,14 +249,11 @@ const Profile: React.FC = () => {
                               <div>
                                   <h3 className="text-lg font-bold text-gray-900 mb-4">About Me</h3>
                                   <p className="text-gray-600 leading-relaxed text-base">
-                                      Hello! I'm Alexandru, an experienced handyman specializing in furniture assembly and general home repairs. 
-                                      With over 5 years of experience working with brands like IKEA, Jysk, and Dedeman products, I ensure your furniture is assembled correctly and sturdy.
-                                      <br/><br/>
-                                      I bring my own professional tools, clean up after the job, and guarantee satisfaction. Whether it's mounting a TV, fixing a leaky faucet, or assembling a complex wardrobe, I'm here to help you get your home in order.
+                                      {currentUser.description}
                                   </p>
                               </div>
 
-                              <div>
+                              {/* <div>
                                   <h3 className="text-lg font-bold text-gray-900 mb-4">Why Hire Me?</h3>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                       <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
@@ -167,35 +273,12 @@ const Profile: React.FC = () => {
                                       <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
                                           <CheckCircle className="text-green-600 mt-0.5" size={20}/>
                                           <div>
-                                              <h4 className="font-bold text-gray-900 text-sm">Clean Work Area</h4>
-                                              <p className="text-xs text-gray-500 mt-1">I leave the space cleaner than I found it.</p>
-                                          </div>
-                                      </div>
-                                      <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
-                                          <CheckCircle className="text-green-600 mt-0.5" size={20}/>
-                                          <div>
                                               <h4 className="font-bold text-gray-900 text-sm">100% Guarantee</h4>
                                               <p className="text-xs text-gray-500 mt-1">If something isn't right, I'll fix it for free.</p>
                                           </div>
                                       </div>
                                   </div>
-                              </div>
-                          </div>
-                      )}
-
-                      {activeTab === 'portfolio' && (
-                          <div className="animate-fadeIn">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                  {[1, 2, 3, 4].map((i) => (
-                                      <div key={i} className="group relative rounded-2xl overflow-hidden aspect-video shadow-md">
-                                          <img src={`https://picsum.photos/seed/${i + 100}/600/400`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
-                                              <h4 className="text-white font-bold text-lg">Custom Wardrobe Assembly</h4>
-                                              <p className="text-gray-300 text-xs">Completed in Nov 2025</p>
-                                          </div>
-                                      </div>
-                                  ))}
-                              </div>
+                              </div> */}
                           </div>
                       )}
 
@@ -234,15 +317,11 @@ const Profile: React.FC = () => {
                   <div className="space-y-4 mb-6">
                       <div className="flex items-center gap-3 text-sm font-medium text-gray-700">
                           <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><Mail size={16}/></div>
-                          <span>alex.popescu@example.com</span>
+                          <span>{displayEmail}</span>
                       </div>
                       <div className="flex items-center gap-3 text-sm font-medium text-gray-700">
                           <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><Phone size={16}/></div>
-                          <span>+40 712 345 678</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm font-medium text-gray-700">
-                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><Globe size={16}/></div>
-                          <span>alex-handyman.ro</span>
+                          <span>{currentUser.phone}</span>
                       </div>
                   </div>
                   <button className="w-full bg-green-700 text-white py-3 rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/10">
@@ -253,7 +332,7 @@ const Profile: React.FC = () => {
               <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
                   <h3 className="font-bold text-gray-900 text-lg mb-4">Skills</h3>
                   <div className="flex flex-wrap gap-2">
-                      {skills.map(skill => (
+                      {currentUser?.skills?.map(skill => (
                           <span key={skill} className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200">
                               {skill}
                           </span>

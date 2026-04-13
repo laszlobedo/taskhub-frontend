@@ -2,19 +2,39 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, ShieldCheck, Search, Star, Briefcase, ChevronDown, User, LogOut, Settings, LayoutDashboard, CheckCircle, Quote, MessageCircle, Hexagon, Menu, X, Wallet, Award, Users, Calendar } from 'lucide-react';
 import { ViewState } from '../types';
+import type { AuthUserDto } from '../api/dto/auth.dto';
 
 interface LandingProps {
   onGetStarted: (view: ViewState) => void;
   isLoggedIn: boolean;
+  currentUser: AuthUserDto | null;
   onLogin: () => void;
   onLogout: () => void;
 }
 
-const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, onLogin, onLogout }) => {
+const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser, onLogin, onLogout }) => {
   const [activeTab, setActiveTab] = useState<ViewState>('landing');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
   const profileRef = useRef<HTMLDivElement>(null);
+  const env = ((import.meta as ImportMeta & { env?: Record<string, string | boolean | undefined> }).env ?? {}) as Record<string, string | boolean | undefined>;
+  const imageBaseUrl = (typeof env.VITE_API_IMAGE_URL === 'string' ? env.VITE_API_IMAGE_URL : '').trim().replace(/\/+$/, '');
+  const profileImage = currentUser?.profile_picture
+    ? `${imageBaseUrl}/${currentUser?.profile_picture}`
+    : 'https://via.placeholder.com/150';
+  const profileName = currentUser?.name ?? currentUser?.username ?? 'User';
+  const shortProfileName = (() => {
+    const parts = profileName.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return 'User';
+    }
+    if (parts.length === 1) {
+      return parts[0];
+    }
+    return `${parts[0]} ${parts[1][0]}.`;
+  })();
+  const profileEmail = currentUser?.email ?? 'No email';
+  const profileBadge = currentUser?.is_verified ? 'Verified Pro' : 'Member';
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -147,7 +167,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, onLogin, on
                             onClick={() => setIsProfileOpen(!isProfileOpen)}
                             className="w-10 h-10 rounded-full border border-gray-200 p-0.5"
                         >
-                            <img src="https://i.pravatar.cc/150?img=68" className="w-full h-full rounded-full object-cover" alt="Profile" />
+                            <img src={profileImage} className="w-full h-full rounded-full object-cover" alt="Profile" />
                         </button>
                     </div>
                 )}
@@ -159,10 +179,10 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, onLogin, on
                     <div className="relative w-[300px] h-full bg-white shadow-2xl overflow-y-auto animate-slideInRight flex flex-col">
                          <div className="p-6 border-b border-gray-100 flex items-center justify-center gap-3">
                              <div className="flex items-center gap-3">
-                                 <img src="https://i.pravatar.cc/150?img=68" className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                                 <img src={profileImage} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
                                  <div>
-                                     <p className="font-bold text-gray-900 text-sm">Alexandru Popescu</p>
-                                     <p className="text-xs text-gray-500">Verified Pro</p>
+                                     <p className="font-bold text-gray-900 text-sm">{profileName}</p>
+                                     <p className="text-xs text-gray-500">{profileBadge}</p>
                                  </div>
                              </div>
                              <button onClick={() => setIsProfileOpen(false)} className="p-2 bg-gray-100 rounded-full text-gray-500">
@@ -239,18 +259,17 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, onLogin, on
                         className="flex items-center gap-3 hover:bg-gray-50 p-1.5 pr-3 rounded-xl transition-all border border-transparent hover:border-gray-100"
                     >
                         <div className="flex flex-col items-end mr-1">
-                            <span className="text-xs font-bold text-gray-900">Alexandru P.</span>
-                            <span className="text-[10px] font-bold text-green-700 bg-green-100 px-1.5 py-0.5 rounded-md">WORKER</span>
+                            <span className="text-xs font-bold text-gray-900">{shortProfileName}</span>
                         </div>
-                        <img src="https://i.pravatar.cc/150?img=68" className="w-10 h-10 rounded-full border-2 border-white shadow-md object-cover" />
+                        <img src={profileImage} className="w-10 h-10 rounded-full border-2 border-white shadow-md object-cover" />
                         <ChevronDown size={16} className={`text-gray-400 transition-transform duration-200 ${isProfileOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {isProfileOpen && (
                         <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 animate-fadeIn z-50 transform origin-top-right">
                             <div className="p-3 border-b border-gray-50 mb-2">
-                                <p className="font-bold text-gray-900">Alexandru Popescu</p>
-                                <p className="text-xs text-gray-500 truncate">alex.popescu@example.com</p>
+                                <p className="font-bold text-gray-900">{profileName}</p>
+                                <p className="text-xs text-gray-500 truncate">{profileEmail}</p>
                             </div>
                             <button onClick={() => onGetStarted('dashboard')} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl text-left">
                                 <LayoutDashboard size={16} /> Dashboard

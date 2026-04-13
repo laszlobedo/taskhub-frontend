@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import Landing from './views/Landing';
@@ -8,8 +8,13 @@ import PostTask from './views/PostTask';
 import Profile from './views/Profile';
 import Schedule from './views/Schedule';
 import Register from './views/Register';
+import Login from './views/Login';
 import DesignPreview from './components/DesignPreview';
 import { ViewState } from './types';
+import { authService } from './api/services/auth.service';
+import type { AuthUserDto, LoginRequestDto } from './api/dto/auth.dto';
+import { setUnauthorizedHandler } from './api/client';
+import { authStorage } from './auth/storage';
 
 const VIEW_TO_PATH: Record<ViewState, string> = {
   landing: '/',
@@ -72,19 +77,61 @@ const getViewFromPathname = (pathname: string): ViewState => PATH_TO_VIEW[pathna
 
 const isViewState = (value: string): value is ViewState => value in VIEW_TO_PATH;
 
+const ProtectedRoute: React.FC<{ isAllowed: boolean; redirectTo: string; children: React.ReactNode }> = ({
+  isAllowed,
+  redirectTo,
+  children,
+}) => {
+  if (!isAllowed) {
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const currentView = getViewFromPathname(location.pathname);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => authService.isAuthenticated());
+  const [currentUser, setCurrentUser] = useState<AuthUserDto | null>(null);
 
-  const handleLogin = () => {
+  useEffect(() => {
+    const storedUser = authService.getStoredUser();
+    setCurrentUser(storedUser);
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      authStorage.clearSession();
+      setCurrentUser(null);
+      setIsLoggedIn(false);
+
+      if (window.location.pathname !== '/login') {
+        navigate('/login');
+      }
+    });
+
+    return () => {
+      setUnauthorizedHandler(null);
+    };
+  }, [navigate]);
+
+  const handleOpenLogin = () => {
+    navigate('/login');
+  };
+
+  const handleLogin = async (payload: LoginRequestDto) => {
+    const user = await authService.login(payload);
+    setCurrentUser(user);
     setIsLoggedIn(true);
     navigate('/dashboard');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authService.logout();
+    setCurrentUser(null);
     setIsLoggedIn(false);
     navigate('/');
   };
@@ -137,6 +184,7 @@ const App: React.FC = () => {
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}
           isLoggedIn={isLoggedIn}
+          currentUser={currentUser}
           onLogout={handleLogout}
         />
       )}
@@ -149,9 +197,22 @@ const App: React.FC = () => {
               <Landing
                 onGetStarted={handleViewNavigation}
                 isLoggedIn={isLoggedIn}
-                onLogin={handleLogin}
+                currentUser={currentUser}
+                onLogin={handleOpenLogin}
                 onLogout={handleLogout}
               />
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <ProtectedRoute isAllowed={!isLoggedIn} redirectTo="/dashboard">
+                <Login
+                  onLogin={handleLogin}
+                  onCancel={() => handleViewNavigation('landing')}
+                  onGoToRegister={() => handleViewNavigation('register')}
+                />
+              </ProtectedRoute>
             }
           />
           <Route
@@ -159,16 +220,22 @@ const App: React.FC = () => {
             element={
               <Register
                 onRegisterComplete={() => {
-                  setIsLoggedIn(true);
-                  handleViewNavigation('dashboard');
+                  handleViewNavigation('landing');
                 }}
-                onCancel={() => handleViewNavigation('landing')}
+                onCancel={() => handleViewNavigation('login')}
               />
             }
           />
           {DASHBOARD_TAB_ROUTES.map((route) => (
             <React.Fragment key={route.path}>
-              <Route path={route.path} element={<Dashboard initialTab={route.tab} />} />
+              <Route
+                path={route.path}
+                element={(
+                  <ProtectedRoute isAllowed={isLoggedIn} redirectTo="/login">
+                    <Dashboard initialTab={route.tab} />
+                  </ProtectedRoute>
+                )}
+              />
             </React.Fragment>
           ))}
           <Route
@@ -185,9 +252,30 @@ const App: React.FC = () => {
               />
             }
           />
-          <Route path="/post-job" element={<PostTask />} />
-          <Route path="/calendar" element={<Schedule />} />
-          <Route path="/profile" element={<Profile />} />
+          <Route
+            path="/post-job"
+            element={(
+              <ProtectedRoute isAllowed={isLoggedIn} redirectTo="/login">
+                <PostTask />
+              </ProtectedRoute>
+            )}
+          />
+          <Route
+            path="/calendar"
+            element={(
+              <ProtectedRoute isAllowed={isLoggedIn} redirectTo="/login">
+                <Schedule />
+              </ProtectedRoute>
+            )}
+          />
+          <Route
+            path="/profile"
+            element={(
+              <ProtectedRoute isAllowed={isLoggedIn} redirectTo="/login">
+                <Profile />
+              </ProtectedRoute>
+            )}
+          />
           <Route path="/preview" element={<DesignPreview onExit={() => handleViewNavigation('landing')} />} />
 
           {LEGACY_REDIRECTS.map((redirect) => (
