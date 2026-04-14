@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Camera, MapPin, Star, ShieldCheck, CheckCircle, Clock, Briefcase, Languages, ThumbsUp, Calendar, Mail, Phone, Globe, Edit3, Share2 } from 'lucide-react';
 import type { MeResponseDto } from '@/api/dto/user.dto';
-import { authService } from '../api/services/auth.service';
 import { useNavigate } from 'react-router-dom';
 import {
   LANGUAGE_LEVEL_COLOR,
@@ -9,6 +8,7 @@ import {
   LanguageLevel,
   normalizeLanguageLevel,
 } from '../constants/languageLevels';
+import { userService } from '@/api/services/user.service';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ const Profile: React.FC = () => {
       try {
         setIsLoading(true);
         setErrorMessage(null);
-        const response = await authService.me();
+        const response = await userService.me();
 
         if (!isMounted) {
           return;
@@ -53,16 +53,17 @@ const Profile: React.FC = () => {
 
   const env = ((import.meta as ImportMeta & { env?: Record<string, string | boolean | undefined> }).env ?? {}) as Record<string, string | boolean | undefined>;
   const imageBaseUrl = (typeof env.VITE_API_IMAGE_URL === 'string' ? env.VITE_API_IMAGE_URL : '').trim().replace(/\/+$/, '');
+  const defaultProfileImage = (typeof env.VITE_DEFAULT_PROFILE_IMAGE === 'string' ? env.VITE_DEFAULT_PROFILE_IMAGE : '').trim().replace(/\/+$/, '');
   const profilePicturePath = currentUser?.profile_picture?.trim();
   const coverPicturePath = currentUser?.cover_picture?.trim();
   const isAbsoluteProfileUrl = Boolean(profilePicturePath?.match(/^https?:\/\//i));
   const isAbsoluteCoverUrl = Boolean(coverPicturePath?.match(/^https?:\/\//i));
   const profileImage = profilePicturePath
     ? (isAbsoluteProfileUrl ? profilePicturePath : `${imageBaseUrl}/${profilePicturePath.replace(/^\/+/, '')}`)
-    : 'https://via.placeholder.com/150';
+    : `${imageBaseUrl}/${defaultProfileImage}`;
   const coverImage = coverPicturePath
     ? (isAbsoluteCoverUrl ? coverPicturePath : `${imageBaseUrl}/${coverPicturePath.replace(/^\/+/, '')}`)
-    : 'https://via.placeholder.com/150';
+    : null;
   const displayName = currentUser?.name ?? currentUser?.username;
   const displayEmail = currentUser?.email;
   const joinedAtLabel = (() => {
@@ -118,7 +119,7 @@ const Profile: React.FC = () => {
       <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden mb-6 relative group">
           <div className="h-56 md:h-80 bg-gradient-to-r from-gray-900 to-gray-800 relative">
              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
-             <img src={coverImage} className="w-full h-full object-cover opacity-40" />
+             {coverImage && <img src={coverImage} className="w-full h-full object-cover opacity-40" />}
              <button className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition opacity-0 group-hover:opacity-100">
                  <Camera size={16}/> Edit Cover
              </button>

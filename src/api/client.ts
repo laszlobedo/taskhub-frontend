@@ -147,10 +147,14 @@ const request = async <TResponse>(
   body?: unknown,
   config: HttpRequestConfig = {},
 ): Promise<TResponse> => {
+  const isFormDataBody = body instanceof FormData;
   const headers: Record<string, string> = {
     ...API_CONFIG.defaultHeaders,
     ...(config.headers ?? {}),
   };
+  if (isFormDataBody) {
+    delete headers['Content-Type'];
+  }
 
   if (shouldAttachAuth(config.authMode)) {
     const token = getToken();
@@ -168,7 +172,12 @@ const request = async <TResponse>(
     const response = await fetch(buildUrl(path, config.query), {
       method,
       headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body:
+        body === undefined
+          ? undefined
+          : isFormDataBody
+            ? body
+            : JSON.stringify(body),
       credentials: API_CONFIG.withCredentials ? 'include' : 'omit',
       signal: config.signal ?? controller.signal,
     });

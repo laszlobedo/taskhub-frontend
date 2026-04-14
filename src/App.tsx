@@ -231,6 +231,7 @@ const App: React.FC = () => {
                   handleViewNavigation('landing');
                 }}
                 onCancel={() => handleViewNavigation('login')}
+                onLogin={handleOpenLogin}
               />
             }
           />
@@ -249,15 +250,17 @@ const App: React.FC = () => {
           <Route
             path="/find-job"
             element={
+              <ProtectedRoute isAllowed={isLoggedIn} redirectTo="/login">
               <FindTasks
-                onNavigate={(view) => {
-                  if (isViewState(view)) {
-                    handleViewNavigation(view);
-                  }
-                }}
-                isLoggedIn={isLoggedIn}
-                onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              />
+                  onNavigate={(view) => {
+                    if (isViewState(view)) {
+                      handleViewNavigation(view);
+                    }
+                  }}
+                  isLoggedIn={isLoggedIn}
+                  onToggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                />
+              </ProtectedRoute>
             }
           />
           <Route

@@ -19,9 +19,10 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
   const profileRef = useRef<HTMLDivElement>(null);
   const env = ((import.meta as ImportMeta & { env?: Record<string, string | boolean | undefined> }).env ?? {}) as Record<string, string | boolean | undefined>;
   const imageBaseUrl = (typeof env.VITE_API_IMAGE_URL === 'string' ? env.VITE_API_IMAGE_URL : '').trim().replace(/\/+$/, '');
+  const defaultProfileImage = (typeof env.VITE_DEFAULT_PROFILE_IMAGE === 'string' ? env.VITE_DEFAULT_PROFILE_IMAGE : '').trim().replace(/\/+$/, '');
   const profileImage = currentUser?.profile_picture
     ? `${imageBaseUrl}/${currentUser?.profile_picture}`
-    : 'https://via.placeholder.com/150';
+    : `${imageBaseUrl}/${defaultProfileImage}`;
   const profileName = currentUser?.name ?? currentUser?.username ?? 'User';
   const shortProfileName = (() => {
     const parts = profileName.trim().split(/\s+/).filter(Boolean);

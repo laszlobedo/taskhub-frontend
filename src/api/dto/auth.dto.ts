@@ -1,3 +1,5 @@
+import { UserLanguageDto } from "./user.dto";
+
 export interface AuthUserDto {
   id: string;
   name: string;
@@ -12,12 +14,6 @@ export interface LoginRequestDto {
   password: string;
 }
 
-export interface RegisterRequestDto {
-  email: string;
-  password: string;
-  name: string;
-}
-
 export interface LoginResponseDto {
     token: string;
     token_type: string;
@@ -27,3 +23,21 @@ export interface LoginResponseDto {
 export interface RegisterResponseDto {
   message: string;
 }
+
+export interface RegisterRequestDto {
+    first_name: string;
+    last_name: string;
+    email: string;
+    password: string;
+    password_confirmation: string;
+    phone: string;
+    government_id: File;
+    profile_picture?: File;
+    cover_picture?: File;
+    resume?: File;
+    bio?: string;
+    description?: string;
+    address?: string;
+    skills?: string[];
+    languages?: UserLanguageDto[];
+  }

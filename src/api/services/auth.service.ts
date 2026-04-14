@@ -18,6 +18,48 @@ const getTokenFromResponse = (response: { token: string; token_type: string }): 
   return response.token;
 };
 
+const buildRegisterFormData = (payload: RegisterRequestDto): FormData => {
+  const formData = new FormData();
+
+  formData.append('first_name', payload.first_name);
+  formData.append('last_name', payload.last_name);
+  formData.append('email', payload.email);
+  formData.append('password', payload.password);
+  formData.append('password_confirmation', payload.password_confirmation);
+  formData.append('phone', payload.phone);
+  formData.append('government_id', payload.government_id);
+
+  if (payload.profile_picture) {
+    formData.append('profile_picture', payload.profile_picture);
+  }
+  if (payload.cover_picture) {
+    formData.append('cover_picture', payload.cover_picture);
+  }
+  if (payload.resume) {
+    formData.append('resume', payload.resume);
+  }
+  if (payload.bio) {
+    formData.append('bio', payload.bio);
+  }
+  if (payload.description) {
+    formData.append('description', payload.description);
+  }
+  if (payload.address) {
+    formData.append('address', payload.address);
+  }
+
+  payload.skills?.forEach((skill, index) => {
+    formData.append(`skills[${index}]`, skill);
+  });
+
+  payload.languages?.forEach((language, index) => {
+    formData.append(`languages[${index}][language]`, language.language);
+    formData.append(`languages[${index}][level]`, language.level);
+  });
+
+  return formData;
+};
+
 export const authService = {
   async login(payload: LoginRequestDto): Promise<AuthUserDto> {
     const response = await authApi.login(payload);
@@ -31,32 +73,9 @@ export const authService = {
   },
 
   async register(payload: RegisterRequestDto): Promise<RegisterResponseDto> {
-    const response = await authApi.register(payload);
+    const formDataPayload = buildRegisterFormData(payload);
+    const response = await authApi.register(formDataPayload);
     return response;
-  },
-
-  async me(): Promise<MeResponseDto> {
-    const response = await authApi.me() as
-      | MeResponseDto
-      | { data: MeResponseDto }
-      | { user: MeResponseDto }
-      | { data: { user: MeResponseDto } };
-
-    if (response && typeof response === 'object') {
-      if ('data' in response && response.data) {
-        const data = response.data as MeResponseDto | { user: MeResponseDto };
-        if (data && typeof data === 'object' && 'user' in data && data.user) {
-          return data.user;
-        }
-        return data as MeResponseDto;
-      }
-
-      if ('user' in response && response.user) {
-        return response.user;
-      }
-    }
-
-    return response as MeResponseDto;
   },
 
   async logout(): Promise<void> {
