@@ -4,7 +4,6 @@ import type {
   RegisterResponseDto,
   RegisterRequestDto,
 } from '../dto/auth.dto';
-import type { MeResponseDto } from '../dto/user.dto';
 import { authApi } from '../modules/auth.api';
 import { authStorage } from '../../auth/storage';
 import { setIgnoreUnauthorizedRedirect } from '../client';

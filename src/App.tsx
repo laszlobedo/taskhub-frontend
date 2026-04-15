@@ -132,7 +132,7 @@ const App: React.FC = () => {
     const user = await authService.login(payload);
     setCurrentUser(user);
     setIsLoggedIn(true);
-    navigate('/dashboard');
+    navigate('/');
   };
 
   const handleLogout = async () => {
@@ -214,7 +214,7 @@ const App: React.FC = () => {
           <Route
             path="/login"
             element={
-              <ProtectedRoute isAllowed={!isLoggedIn} redirectTo="/dashboard">
+              <ProtectedRoute isAllowed={!isLoggedIn} redirectTo="/">
                 <Login
                   onLogin={handleLogin}
                   onCancel={() => handleViewNavigation('landing')}

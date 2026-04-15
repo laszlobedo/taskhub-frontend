@@ -1,7 +1,7 @@
 import { UserLanguageDto } from "./user.dto";
 
 export interface AuthUserDto {
-  id: string;
+  id: number;
   name: string;
   username: string;
   email: string;

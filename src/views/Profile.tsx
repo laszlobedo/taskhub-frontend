@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Camera, MapPin, Star, ShieldCheck, CheckCircle, Clock, Briefcase, Languages, ThumbsUp, Calendar, Mail, Phone, Globe, Edit3, Share2 } from 'lucide-react';
-import type { MeResponseDto } from '@/api/dto/user.dto';
+import React, { useEffect, useRef, useState } from 'react';
+import { Camera, MapPin, Star, ShieldCheck, CheckCircle, Clock, Briefcase, Languages, ThumbsUp, Calendar, Mail, Phone, Globe, Edit3, Share2, ClipboardList, Megaphone } from 'lucide-react';
+import type { DetailedUserDto } from '@/api/dto/user.dto';
 import { useNavigate } from 'react-router-dom';
 import {
   LANGUAGE_LEVEL_COLOR,
@@ -12,10 +12,21 @@ import { userService } from '@/api/services/user.service';
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'reviews'>('overview');
-  const [currentUser, setCurrentUser] = useState<MeResponseDto | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'given-reviews'>('overview');
+  const [currentUser, setCurrentUser] = useState<DetailedUserDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
+  const [isCoverMenuOpen, setIsCoverMenuOpen] = useState(false);
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+  const [viewerImageSrc, setViewerImageSrc] = useState<string | null>(null);
+  const [viewerImageAlt, setViewerImageAlt] = useState('Profile image');
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [showAllGivenReviews, setShowAllGivenReviews] = useState(false);
+  const avatarMenuRef = useRef<HTMLDivElement | null>(null);
+  const coverMenuRef = useRef<HTMLDivElement | null>(null);
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
+  const profileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -51,11 +62,30 @@ const Profile: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (avatarMenuRef.current && !avatarMenuRef.current.contains(event.target as Node)) {
+        setIsAvatarMenuOpen(false);
+      }
+      if (coverMenuRef.current && !coverMenuRef.current.contains(event.target as Node)) {
+        setIsCoverMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const env = ((import.meta as ImportMeta & { env?: Record<string, string | boolean | undefined> }).env ?? {}) as Record<string, string | boolean | undefined>;
   const imageBaseUrl = (typeof env.VITE_API_IMAGE_URL === 'string' ? env.VITE_API_IMAGE_URL : '').trim().replace(/\/+$/, '');
   const defaultProfileImage = (typeof env.VITE_DEFAULT_PROFILE_IMAGE === 'string' ? env.VITE_DEFAULT_PROFILE_IMAGE : '').trim().replace(/\/+$/, '');
   const profilePicturePath = currentUser?.profile_picture?.trim();
   const coverPicturePath = currentUser?.cover_picture?.trim();
+  const hasProfilePicture = Boolean(profilePicturePath);
+  const hasCoverPicture = Boolean(coverPicturePath);
   const isAbsoluteProfileUrl = Boolean(profilePicturePath?.match(/^https?:\/\//i));
   const isAbsoluteCoverUrl = Boolean(coverPicturePath?.match(/^https?:\/\//i));
   const profileImage = profilePicturePath
@@ -83,6 +113,138 @@ const Profile: React.FC = () => {
 
     return `Joined ${formatted}`;
   })();
+
+  const openImageViewer = (imageSrc: string | null, imageAlt: string) => {
+    if (!imageSrc) {
+      return;
+    }
+
+    setViewerImageSrc(imageSrc);
+    setViewerImageAlt(imageAlt);
+    setIsImageViewerOpen(true);
+  };
+
+  const closeImageViewer = () => {
+    setIsImageViewerOpen(false);
+    setViewerImageSrc(null);
+  };
+
+  const formatWeeksAgo = (createdAt: string): string => {
+    const createdDate = new Date(createdAt);
+    if (Number.isNaN(createdDate.getTime())) {
+      return 'Recently';
+    }
+
+    const diffMs = Date.now() - createdDate.getTime();
+    const weekMs = 7 * 24 * 60 * 60 * 1000;
+    if (diffMs < weekMs) {
+      return 'Recently';
+    }
+    const weeks = Math.floor(diffMs / weekMs);
+
+    return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+  };
+
+  const resolveUserImage = (imagePath?: string): string => {
+    const trimmed = imagePath?.trim();
+    if (!trimmed) {
+      return `${imageBaseUrl}/${defaultProfileImage}`;
+    }
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    return `${imageBaseUrl}/${trimmed.replace(/^\/+/, '')}`;
+  };
+
+  const receivedFeedbacks = currentUser?.received_feedbacks ?? [];
+  const visibleFeedbacks = showAllReviews ? receivedFeedbacks : receivedFeedbacks.slice(0, 3);
+  const sentFeedbacks = currentUser?.sent_feedbacks ?? [];
+  const visibleSentFeedbacks = showAllGivenReviews ? sentFeedbacks : sentFeedbacks.slice(0, 3);
+
+  const handleOpenCoverPicker = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsCoverMenuOpen(false);
+    coverInputRef.current?.click();
+  };
+
+  const handleDeleteCover = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    try {
+      setErrorMessage(null);
+      const updatedUser = await userService.update({
+        _method: 'PATCH',
+        remove_cover_picture: true,
+      });
+      setCurrentUser(updatedUser);
+      setIsCoverMenuOpen(false);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete cover picture.');
+    }
+  };
+
+  const handleOpenProfilePicker = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsAvatarMenuOpen(false);
+    profileInputRef.current?.click();
+  };
+
+  const handleProfileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile) {
+      return;
+    }
+
+    try {
+      setErrorMessage(null);
+      const updatedUser = await userService.update({
+        _method: 'PATCH',
+        profile_picture: selectedFile,
+      });
+      setCurrentUser(updatedUser);
+      setIsAvatarMenuOpen(false);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update profile picture.');
+    } finally {
+      event.target.value = '';
+    }
+  };
+
+  const handleDeleteProfile = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    try {
+      setErrorMessage(null);
+      const updatedUser = await userService.update({
+        _method: 'PATCH',
+        remove_profile_picture: true,
+      });
+      setCurrentUser(updatedUser);
+      setIsAvatarMenuOpen(false);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete profile picture.');
+    }
+  };
+
+  const handleCoverSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile) {
+      return;
+    }
+
+    try {
+      setErrorMessage(null);
+      const updatedUser = await userService.update({
+        _method: 'PATCH',
+        cover_picture: selectedFile,
+      });
+      setCurrentUser(updatedUser);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update cover picture.');
+    } finally {
+      event.target.value = '';
+    }
+  };
 
   if (isLoading) {
     return (
@@ -117,26 +279,125 @@ const Profile: React.FC = () => {
   return (
     <div className="p-4 md:p-8 max-w-[1600px] mx-auto animate-fadeIn min-h-screen">
       <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden mb-6 relative group">
-          <div className="h-56 md:h-80 bg-gradient-to-r from-gray-900 to-gray-800 relative">
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleCoverSelected}
+          />
+          <input
+            ref={profileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleProfileSelected}
+          />
+          <div
+            role="button"
+            tabIndex={coverImage ? 0 : -1}
+            onClick={() => openImageViewer(coverImage, `${displayName} cover`)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openImageViewer(coverImage, `${displayName} cover`);
+              }
+            }}
+            className="h-56 md:h-80 bg-gradient-to-r from-gray-900 to-gray-800 relative"
+          >
              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
              {coverImage && <img src={coverImage} className="w-full h-full object-cover opacity-40" />}
-             <button className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition opacity-0 group-hover:opacity-100">
-                 <Camera size={16}/> Edit Cover
-             </button>
+             <div ref={coverMenuRef} className="absolute top-4 right-4">
+               <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setIsCoverMenuOpen((prev) => !prev);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition opacity-0 group-hover:opacity-100"
+               >
+                   <Camera size={16}/> Edit Cover
+               </button>
+               {isCoverMenuOpen && (
+                 <div className="absolute right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-lg p-1.5 w-48 z-30">
+                   <button
+                     type="button"
+                     onClick={handleOpenCoverPicker}
+                     className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                   >
+                     {hasCoverPicture ? 'Update cover photo' : 'Add cover photo'}
+                   </button>
+                   {hasCoverPicture && (
+                     <button
+                       type="button"
+                       onClick={handleDeleteCover}
+                       className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50"
+                     >
+                       Delete cover photo
+                     </button>
+                   )}
+                 </div>
+               )}
+             </div>
           </div>
 
           <div className="px-6 md:px-10 pb-8 relative">
               <div className="flex flex-col md:flex-row items-start gap-6">
-                  <div className="relative group/avatar -mt-16 md:-mt-20 flex-shrink-0 z-10">
+                  <div ref={avatarMenuRef} className="relative group/avatar -mt-16 md:-mt-20 flex-shrink-0 z-10">
                       <div className="p-1.5 bg-white rounded-[2rem] shadow-sm">
                         <img src={profileImage} className="w-32 h-32 md:w-40 md:h-40 rounded-[1.8rem] object-cover border border-gray-100 shadow-inner" />
                       </div>
                       <div className="absolute bottom-4 right-4 bg-blue-500 text-white p-2 rounded-full border-4 border-white shadow-sm" title="Identity Verified">
                           <ShieldCheck size={20} fill="currentColor" />
                       </div>
-                      <div className="absolute inset-0 bg-black/40 rounded-[2rem] m-1.5 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition cursor-pointer">
+                      <button
+                        type="button"
+                        onClick={() => setIsAvatarMenuOpen((prev) => !prev)}
+                        className="absolute inset-0 bg-black/40 rounded-[2rem] m-1.5 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition cursor-pointer"
+                        aria-label="Open profile picture actions"
+                      >
                           <Camera size={24} className="text-white"/>
-                      </div>
+                      </button>
+                      {isAvatarMenuOpen && (
+                        <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 bg-white border border-gray-100 rounded-xl shadow-lg p-1.5 w-56 z-30">
+                          {hasProfilePicture ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  openImageViewer(profileImage, `${displayName} profile`);
+                                  setIsAvatarMenuOpen(false);
+                                }}
+                                className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                              >
+                                View profile photo
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleOpenProfilePicker}
+                                className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                              >
+                                Update profile photo
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleDeleteProfile}
+                                className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50"
+                              >
+                                Delete profile photo
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleOpenProfilePicker}
+                              className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                            >
+                              Add profile photo
+                            </button>
+                          )}
+                        </div>
+                      )}
                   </div>
 
                   <div className="flex-1 w-full md:w-auto pt-2">
@@ -193,6 +454,31 @@ const Profile: React.FC = () => {
           </div>
       </div>
 
+      {isImageViewerOpen && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-start justify-center p-4 pt-8">
+          <button
+            type="button"
+            onClick={closeImageViewer}
+            className="absolute inset-0 cursor-default"
+            aria-label="Close image viewer backdrop"
+          />
+          <div className="relative z-10 w-[90vw] h-[90vh] flex items-start justify-center">
+            <button
+              type="button"
+              onClick={closeImageViewer}
+              className="absolute top-3 right-3 text-white text-sm font-bold px-3 py-1.5 rounded-lg bg-black/50 hover:bg-black/70"
+            >
+              Close
+            </button>
+            <img
+              src={viewerImageSrc ?? profileImage}
+              alt={viewerImageAlt}
+              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
 
           <div className="xl:col-span-2 space-y-8">
@@ -202,8 +488,12 @@ const Profile: React.FC = () => {
                           <Star size={28} fill="currentColor"/>
                       </div>
                       <div>
-                          <span className="block text-2xl font-extrabold text-gray-900 leading-none">4.9</span>
-                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Rating (24)</span>
+                          <span className="block text-2xl font-extrabold text-gray-900 leading-none">
+                            {typeof currentUser.rating_average === 'number' ? currentUser.rating_average.toFixed(1) : '-'}
+                          </span>
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                            Rating ({currentUser.received_feedbacks_count ?? 0})
+                          </span>
                       </div>
                   </div>
                   <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-row items-center gap-4 hover:border-green-200 transition-colors">
@@ -213,6 +503,24 @@ const Profile: React.FC = () => {
                       <div>
                           <span className="block text-2xl font-extrabold text-gray-900 leading-none">142</span>
                           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Jobs Done</span>
+                      </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-row items-center gap-4 hover:border-green-200 transition-colors">
+                      <div className="text-indigo-600 flex-shrink-0">
+                          <ClipboardList size={28}/>
+                      </div>
+                      <div>
+                          <span className="block text-2xl font-extrabold text-gray-900 leading-none">0</span>
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Jobs Posted</span>
+                      </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-row items-center gap-4 hover:border-green-200 transition-colors">
+                      <div className="text-orange-600 flex-shrink-0">
+                          <Megaphone size={28}/>
+                      </div>
+                      <div>
+                          <span className="block text-2xl font-extrabold text-gray-900 leading-none">0</span>
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ads</span>
                       </div>
                   </div>
                   {/* <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-row items-center gap-4 hover:border-green-200 transition-colors">
@@ -239,7 +547,8 @@ const Profile: React.FC = () => {
                   <div className="flex border-b border-gray-100 overflow-x-auto scrollbar-hide">
                       {[
                           { id: 'overview', label: 'Overview' },
-                          { id: 'reviews', label: 'Reviews' }
+                          { id: 'reviews', label: 'Reviews' },
+                          { id: 'given-reviews', label: 'Given Reviews' }
                       ].map((tab: any) => (
                           <button
                             key={tab.id}
@@ -296,27 +605,102 @@ const Profile: React.FC = () => {
 
                       {activeTab === 'reviews' && (
                           <div className="space-y-6 animate-fadeIn">
-                              {[1, 2, 3].map((i) => (
-                                  <div key={i} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
-                                      <div className="flex justify-between items-start mb-2">
-                                          <div className="flex items-center gap-3">
-                                              <img src={`https://i.pravatar.cc/150?img=${i + 20}`} className="w-10 h-10 rounded-full bg-gray-200 object-cover" />
-                                              <div>
-                                                  <h4 className="font-bold text-gray-900 text-sm">Client Name {i}</h4>
-                                                  <p className="text-xs text-gray-400">2 weeks ago</p>
-                                              </div>
-                                          </div>
-                                          <div className="flex text-yellow-400">
-                                              {[...Array(5)].map((_, idx) => <Star key={idx} size={14} fill="currentColor"/>)}
-                                          </div>
+                              {receivedFeedbacks.length === 0 && (
+                                <div className="text-sm font-medium text-gray-500 bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+                                  No reviews yet.
+                                </div>
+                              )}
+
+                              {visibleFeedbacks.map((feedback) => (
+                                <div key={feedback.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <div className="flex items-center gap-3">
+                                      <img
+                                        src={resolveUserImage(feedback.sender.profile_picture)}
+                                        className="w-10 h-10 rounded-full bg-gray-200 object-cover"
+                                      />
+                                      <div>
+                                        <h4 className="font-bold text-gray-900 text-sm">{feedback.sender.name}</h4>
+                                        <p className="text-xs text-gray-400">{formatWeeksAgo(feedback.created_at)}</p>
                                       </div>
-                                      <p className="text-gray-600 text-sm leading-relaxed mt-2 bg-gray-50 p-4 rounded-xl rounded-tl-none">
-                                          "Alexandru did an amazing job! He was punctual, polite, and finished the assembly much faster than I expected. Highly recommended!"
-                                      </p>
+                                    </div>
+                                    <div className="flex text-yellow-400">
+                                      {[...Array(5)].map((_, idx) => (
+                                        <Star
+                                          key={idx}
+                                          size={14}
+                                          fill={idx < Math.round(feedback.rating) ? 'currentColor' : 'none'}
+                                          className={idx < Math.round(feedback.rating) ? 'text-yellow-400' : 'text-gray-300'}
+                                        />
+                                      ))}
+                                    </div>
                                   </div>
+                                  <p className="text-gray-600 text-sm leading-relaxed mt-2 bg-gray-50 p-4 rounded-xl rounded-tl-none">
+                                    {feedback.overview?.trim() ? `"${feedback.overview}"` : 'No comment yet.'}
+                                  </p>
+                                </div>
                               ))}
-                              <button className="w-full py-3 border border-gray-200 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-50 transition">Show More Reviews</button>
+
+                              {receivedFeedbacks.length > 3 && (
+                                <button
+                                  type="button"
+                                  onClick={() => setShowAllReviews((prev) => !prev)}
+                                  className="w-full py-3 border border-gray-200 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-50 transition"
+                                >
+                                  {showAllReviews ? 'Show Less Reviews' : 'Show More Reviews'}
+                                </button>
+                              )}
                           </div>
+                      )}
+
+                      {activeTab === 'given-reviews' && (
+                        <div className="space-y-6 animate-fadeIn">
+                          {sentFeedbacks.length === 0 && (
+                            <div className="text-sm font-medium text-gray-500 bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
+                              No reviews yet.
+                            </div>
+                          )}
+
+                          {visibleSentFeedbacks.map((feedback) => (
+                            <div key={feedback.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src={resolveUserImage(feedback.receiver.profile_picture)}
+                                    className="w-10 h-10 rounded-full bg-gray-200 object-cover"
+                                  />
+                                  <div>
+                                    <h4 className="font-bold text-gray-900 text-sm">{feedback.receiver.name}</h4>
+                                    <p className="text-xs text-gray-400">{formatWeeksAgo(feedback.created_at)}</p>
+                                  </div>
+                                </div>
+                                <div className="flex text-yellow-400">
+                                  {[...Array(5)].map((_, idx) => (
+                                    <Star
+                                      key={idx}
+                                      size={14}
+                                      fill={idx < Math.round(feedback.rating) ? 'currentColor' : 'none'}
+                                      className={idx < Math.round(feedback.rating) ? 'text-yellow-400' : 'text-gray-300'}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                              <p className="text-gray-600 text-sm leading-relaxed mt-2 bg-gray-50 p-4 rounded-xl rounded-tl-none">
+                                {feedback.overview?.trim() ? `"${feedback.overview}"` : 'No comment yet.'}
+                              </p>
+                            </div>
+                          ))}
+
+                          {sentFeedbacks.length > 3 && (
+                            <button
+                              type="button"
+                              onClick={() => setShowAllGivenReviews((prev) => !prev)}
+                              className="w-full py-3 border border-gray-200 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-50 transition"
+                            >
+                              {showAllGivenReviews ? 'Show Less Reviews' : 'Show More Reviews'}
+                            </button>
+                          )}
+                        </div>
                       )}
                   </div>
               </div>
