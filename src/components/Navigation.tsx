@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { LayoutDashboard, Search, PlusCircle, MessageSquare, User, LogOut, Menu, X, Calendar, Settings, ChevronUp, ChevronDown, Hexagon, Wallet, Award, Users } from 'lucide-react';
 import { ViewState } from '../types';
 import type { AuthUserDto } from '../api/dto/auth.dto';
+import type { SupportedLocale } from '@/i18n/locales';
+import { navigationTranslations } from '@/i18n/translations/navigation';
 
 interface NavigationProps {
   currentView: ViewState;
@@ -12,9 +14,17 @@ interface NavigationProps {
   isLoggedIn: boolean;
   currentUser: AuthUserDto | null;
   onLogout: () => void;
+  locale: SupportedLocale;
+  onLocaleChange: (locale: SupportedLocale) => void;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ currentView, onChangeView, isMobileMenuOpen, setIsMobileMenuOpen, isLoggedIn, currentUser, onLogout }) => {
+const LOCALE_OPTIONS: Array<{ locale: SupportedLocale; flag: string; label: string }> = [
+  { locale: 'en', flag: '🇬🇧', label: '' },
+  { locale: 'ro', flag: '🇷🇴', label: '' },
+  { locale: 'hu', flag: '🇭🇺', label: '' },
+];
+
+const Navigation: React.FC<NavigationProps> = ({ currentView, onChangeView, isMobileMenuOpen, setIsMobileMenuOpen, isLoggedIn, currentUser, onLogout, locale, onLocaleChange }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const env = ((import.meta as ImportMeta & { env?: Record<string, string | boolean | undefined> }).env ?? {}) as Record<string, string | boolean | undefined>;
@@ -25,6 +35,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onChangeView, isMo
     : `${imageBaseUrl}/${defaultProfileImage}`;
   const profileName = currentUser?.name ?? currentUser?.username ?? 'User';
   const profileEmail = currentUser?.email ?? 'No email';
+  const t = navigationTranslations[locale];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -37,8 +48,8 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onChangeView, isMo
   }, []);
 
   const mainNavItems = [
-    { id: 'find-job', label: 'Find Job', icon: Search },
-    { id: 'post-job', label: 'Post a Job', icon: PlusCircle },
+    { id: 'find-job', label: t.mainNav.findJob, icon: Search },
+    { id: 'post-job', label: t.mainNav.postJob, icon: PlusCircle },
   ];
 
   const hubItems = [
@@ -54,12 +65,26 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onChangeView, isMo
 
   const NavContent = () => (
     <div className="flex flex-col h-full text-gray-600 font-sans relative overflow-y-auto">
-      <div className="p-6 flex items-center gap-3 mb-2 cursor-pointer flex-shrink-0" onClick={() => onChangeView('landing')}>
-        <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center shadow-sm relative overflow-hidden">
-             <Hexagon size={20} className="text-white fill-white relative z-10" strokeWidth={0} />
-             <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
+      <div className="p-6 flex items-center justify-between gap-3 mb-2 flex-shrink-0">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => onChangeView('landing')}>
+          <div className="w-8 h-8 bg-green-700 rounded-lg flex items-center justify-center shadow-sm relative overflow-hidden">
+              <Hexagon size={20} className="text-white fill-white relative z-10" strokeWidth={0} />
+              <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
+          </div>
+          <span className="font-bold text-xl text-gray-900 tracking-tight">Task<span className="text-green-700">Hub</span></span>
         </div>
-        <span className="font-bold text-xl text-gray-900 tracking-tight">Task<span className="text-green-700">Hub</span></span>
+        <select
+          value={locale}
+          onChange={(event) => onLocaleChange(event.target.value as SupportedLocale)}
+          className="text-lg font-bold border border-gray-200 rounded-lg bg-white px-2 py-1 leading-none text-gray-700"
+          aria-label="Select language"
+        >
+          {LOCALE_OPTIONS.map((option) => (
+            <option key={option.locale} value={option.locale}>
+              {option.flag}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="px-6 mb-6">
@@ -145,7 +170,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onChangeView, isMo
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl text-left transition-colors"
                 >
                     <LogOut size={18} />
-                    <span>Log Out</span>
+                    <span>{t.actions.logOut}</span>
                 </button>
             </div>
         </div>
@@ -161,6 +186,18 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, onChangeView, isMo
                 <Hexagon size={20} className="text-white fill-white relative z-10" strokeWidth={0} />
             </div>
             <span className="font-bold text-lg text-gray-900">Task<span className="text-green-700">Hub</span></span>
+            <select
+              value={locale}
+              onChange={(event) => onLocaleChange(event.target.value as SupportedLocale)}
+              className="text-lg font-bold border border-gray-200 rounded-lg bg-white px-2 py-1 leading-none text-gray-700"
+              aria-label="Select language"
+            >
+              {LOCALE_OPTIONS.map((option) => (
+                <option key={option.locale} value={option.locale}>
+                  {option.flag}
+                </option>
+              ))}
+            </select>
         </div>
 
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="rounded-full border border-gray-100 p-0.5 relative">

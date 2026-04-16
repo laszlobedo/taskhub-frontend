@@ -5,11 +5,15 @@ import type { RegisterRequestDto } from '../api/dto/auth.dto';
 import { authService } from '../api/services/auth.service';
 import { LanguageLevel, LANGUAGE_LEVEL_LABEL } from '../constants/languageLevels';
 import { toApiError } from '../api/errors/ApiError';
+import type { SupportedLocale } from '@/i18n/locales';
+import { registerTranslations } from '@/i18n/translations/register';
 
 interface RegisterProps {
   onRegisterComplete: () => void;
   onCancel: () => void;
   onLogin: () => void;
+  locale: SupportedLocale;
+  onLocaleChange: (locale: SupportedLocale) => void;
 }
 
 type RegisterRequestDraftDto = Omit<
@@ -35,7 +39,13 @@ type StepOneField =
   | 'password'
   | 'password_confirmation';
 
-const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLogin }) => {
+const LOCALE_OPTIONS: Array<{ locale: SupportedLocale; flag: string }> = [
+  { locale: 'en', flag: '🇬🇧' },
+  { locale: 'ro', flag: '🇷🇴' },
+  { locale: 'hu', flag: '🇭🇺' },
+];
+
+const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLogin, locale, onLocaleChange }) => {
   const rowIdCounterRef = useRef(2);
   const [step, setStep] = useState<number>(0);
   const [loading, setLoading] = useState(false);
@@ -44,6 +54,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
   const [stepOneErrors, setStepOneErrors] = useState<Partial<Record<StepOneField, string>>>({});
   const [languageRowIds, setLanguageRowIds] = useState<string[]>(['lang-0']);
   const [skillRowIds, setSkillRowIds] = useState<string[]>(['skill-1']);
+  const t = registerTranslations[locale];
   const [user, setUser] = useState<RegisterRequestDraftDto>({
     first_name: '',
     last_name: '',
@@ -65,33 +76,33 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
   const nextStep = async () => {
       if (step === 0) {
           const requiredFields: Array<{ key: StepOneField; label: string }> = [
-            { key: 'first_name', label: 'First Name' },
-            { key: 'last_name', label: 'Last Name' },
-            { key: 'email', label: 'Email Address' },
-            { key: 'phone', label: 'Phone Number' },
-            { key: 'password', label: 'Password' },
-            { key: 'password_confirmation', label: 'Confirm Password' },
+            { key: 'first_name', label: t.fields.firstName },
+            { key: 'last_name', label: t.fields.lastName },
+            { key: 'email', label: t.fields.emailAddress },
+            { key: 'phone', label: t.fields.phoneNumber },
+            { key: 'password', label: t.fields.password },
+            { key: 'password_confirmation', label: t.fields.confirmPassword },
           ];
 
           const errors = requiredFields.reduce<Partial<Record<StepOneField, string>>>((acc, field) => {
             if (!user[field.key].trim()) {
-              acc[field.key] = `${field.label} is required!`;
+              acc[field.key] = `${field.label} ${t.validation.requiredSuffix}`;
             }
             return acc;
           }, {});
 
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!errors.email && !emailRegex.test(user.email.trim())) {
-            errors.email = 'Email Address must be a valid email format!';
+            errors.email = t.validation.validEmail;
           }
 
           const phoneRegex = /^\d+$/;
           if (!errors.phone && !phoneRegex.test(user.phone.trim())) {
-            errors.phone = 'Phone Number must be numeric!';
+            errors.phone = t.validation.phoneNumeric;
           }
 
           if (!errors.password && user.password.length < 8) {
-            errors.password = 'Password must be at least 8 characters!';
+            errors.password = t.validation.passwordMin;
           }
 
           if (
@@ -99,7 +110,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
             !errors.password_confirmation &&
             user.password !== user.password_confirmation
           ) {
-            errors.password_confirmation = 'Confirm Password must match Password!';
+            errors.password_confirmation = t.validation.confirmMatch;
           }
 
           setStepOneErrors(errors);
@@ -114,7 +125,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
           setRegisterError(null);
           try {
               if (!user.government_id) {
-                throw new Error('Government ID file is required.');
+                throw new Error(t.validation.governmentFileRequired);
               }
 
               const normalizedLanguages = (user.languages ?? [])
@@ -155,7 +166,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
           }
       } else {
           if (step === 4 && !user.government_id) {
-            setRegisterError('Government ID is required before continuing.');
+            setRegisterError(t.validation.governmentRequiredBeforeContinue);
             return;
           }
           setStep(prev => prev + 1);
@@ -265,16 +276,16 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                 <div className="animate-fadeIn max-w-md mx-auto w-full">
                     <div className="mb-6">
                         <span className="text-green-700 font-bold text-xs uppercase tracking-wider bg-green-50 px-3 py-1 rounded-full mb-4 inline-block">
-                            Step 1 of 6
+                            {t.common.stepBadge[0]}
                         </span>
-                        <h2 className="text-3xl font-extrabold text-gray-900">Account Details</h2>
-                        <p className="text-gray-500 mt-2">Let's start with the basics.</p>
+                        <h2 className="text-3xl font-extrabold text-gray-900">{t.steps.accountDetails.title}</h2>
+                        <p className="text-gray-500 mt-2">{t.steps.accountDetails.subtitle}</p>
                     </div>
 
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">First Name</label>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.firstName}</label>
                                 <input
                                     required
                                     type="text"
@@ -291,7 +302,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                                 {stepOneErrors.first_name && <p className="mt-1 text-sm text-red-600">{stepOneErrors.first_name}</p>}
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Last Name</label>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.lastName}</label>
                                 <input
                                     required
                                     type="text"
@@ -309,7 +320,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Email Address</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.emailAddress}</label>
                             <input
                                 required
                                 type="email"
@@ -326,7 +337,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                             {stepOneErrors.email && <p className="mt-1 text-sm text-red-600">{stepOneErrors.email}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Phone Number</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.phoneNumber}</label>
                             <input
                                 required
                                 type="tel"
@@ -343,7 +354,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                             {stepOneErrors.phone && <p className="mt-1 text-sm text-red-600">{stepOneErrors.phone}</p>}
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Password</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.password}</label>
                             <input
                                 required
                                 type="password"
@@ -360,7 +371,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                             {stepOneErrors.password && <p className="mt-1 text-sm text-red-600">{stepOneErrors.password}</p>}
                         </div>
                          <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Confirm Password</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.confirmPassword}</label>
                             <input
                                 required
                                 type="password"
@@ -385,15 +396,15 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                 <div className="animate-fadeIn max-w-md mx-auto w-full">
                      <div className="mb-6">
                         <span className="text-green-700 font-bold text-xs uppercase tracking-wider bg-green-50 px-3 py-1 rounded-full mb-4 inline-block">
-                            Step 2 of 6
+                            {t.common.stepBadge[1]}
                         </span>
-                        <h2 className="text-3xl font-extrabold text-gray-900">Profile Details</h2>
-                        <p className="text-gray-500 mt-2">Tell us a bit more about yourself.</p>
+                        <h2 className="text-3xl font-extrabold text-gray-900">{t.steps.profileDetails.title}</h2>
+                        <p className="text-gray-500 mt-2">{t.steps.profileDetails.subtitle}</p>
                     </div>
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Address</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.address}</label>
                             <input
                                 type="text"
                                 value={user.address ?? ''}
@@ -405,7 +416,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Bio</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.bio}</label>
                             <input
                                 type="text"
                                 value={user.bio ?? ''}
@@ -417,7 +428,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Description</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.description}</label>
                             <textarea
                                 rows={5}
                                 value={user.description ?? ''}
@@ -437,17 +448,17 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                 <div className="animate-fadeIn max-w-md mx-auto w-full">
                      <div className="mb-6">
                         <span className="text-green-700 font-bold text-xs uppercase tracking-wider bg-green-50 px-3 py-1 rounded-full mb-4 inline-block">
-                            Step 3 of 6
+                            {t.common.stepBadge[2]}
                         </span>
-                        <h2 className="text-3xl font-extrabold text-gray-900">Languages and Skills</h2>
-                        <p className="text-gray-500 mt-2">Add your language level and core skills.</p>
+                        <h2 className="text-3xl font-extrabold text-gray-900">{t.steps.languagesSkills.title}</h2>
+                        <p className="text-gray-500 mt-2">{t.steps.languagesSkills.subtitle}</p>
                     </div>
 
                     <div className="space-y-4">
                         {(user.languages ?? []).map((languageItem, index) => (
                             <div key={languageRowIds[index] ?? `lang-fallback-${index}`} className="grid grid-cols-[1fr_1fr_auto] gap-4 items-end">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Language</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.language}</label>
                                     <input
                                         type="text"
                                         value={languageItem.language}
@@ -456,7 +467,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Level</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.level}</label>
                                     <select
                                         value={languageItem.level}
                                         onChange={(event) => updateLanguageRow(index, 'level', event.target.value)}
@@ -485,10 +496,10 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                             onClick={addLanguageRow}
                             className="text-sm font-bold text-green-700 hover:text-green-800"
                         >
-                            + Add language
+                            {t.steps.languagesSkills.addLanguage}
                         </button>
                         <div className="space-y-2">
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Skills</label>
+                            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.fields.skills}</label>
                             {(user.skills ?? []).map((skill, index) => (
                                 <div key={skillRowIds[index] ?? `skill-fallback-${index}`} className="grid grid-cols-[1fr_auto] gap-4 items-end">
                                     <input
@@ -511,7 +522,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                                 onClick={addSkillRow}
                                 className="text-sm font-bold text-green-700 hover:text-green-800"
                             >
-                                + Add skill
+                                {t.steps.languagesSkills.addSkill}
                             </button>
                         </div>
                     </div>
@@ -523,18 +534,18 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                 <div className="animate-fadeIn max-w-md mx-auto w-full">
                      <div className="mb-6">
                         <span className="text-green-700 font-bold text-xs uppercase tracking-wider bg-green-50 px-3 py-1 rounded-full mb-4 inline-block">
-                            Step 4 of 6
+                            {t.common.stepBadge[3]}
                         </span>
-                        <h2 className="text-3xl font-extrabold text-gray-900">Upload Pictures</h2>
-                        <p className="text-gray-500 mt-2">Add your profile and cover images.</p>
+                        <h2 className="text-3xl font-extrabold text-gray-900">{t.steps.uploadPictures.title}</h2>
+                        <p className="text-gray-500 mt-2">{t.steps.uploadPictures.subtitle}</p>
                     </div>
 
                     <div className="space-y-6">
                         <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-green-500 hover:bg-green-50/50 transition cursor-pointer">
-                            <h3 className="font-bold text-gray-900">Upload Profile Picture</h3>
-                            <p className="text-sm text-gray-500 mt-2">JPG, PNG or WEBP</p>
+                            <h3 className="font-bold text-gray-900">{t.steps.uploadPictures.profilePicture}</h3>
+                            <p className="text-sm text-gray-500 mt-2">{t.common.fileTypesImages}</p>
                             <label className="mt-4 inline-block text-sm font-bold text-green-700 cursor-pointer">
-                                Browse Files
+                                {t.common.browseFiles}
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -548,10 +559,10 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                             {user.profile_picture && <p className="text-xs text-gray-500 mt-2">{user.profile_picture.name}</p>}
                         </div>
                         <div className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-green-500 hover:bg-green-50/50 transition cursor-pointer">
-                            <h3 className="font-bold text-gray-900">Upload Cover Picture</h3>
-                            <p className="text-sm text-gray-500 mt-2">JPG, PNG or WEBP</p>
+                            <h3 className="font-bold text-gray-900">{t.steps.uploadPictures.coverPicture}</h3>
+                            <p className="text-sm text-gray-500 mt-2">{t.common.fileTypesImages}</p>
                             <label className="mt-4 inline-block text-sm font-bold text-green-700 cursor-pointer">
-                                Browse Files
+                                {t.common.browseFiles}
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -573,10 +584,10 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                 <div className="animate-fadeIn max-w-md mx-auto w-full">
                      <div className="mb-6">
                         <span className="text-green-700 font-bold text-xs uppercase tracking-wider bg-green-50 px-3 py-1 rounded-full mb-4 inline-block">
-                            Step 5 of 6
+                            {t.common.stepBadge[4]}
                         </span>
-                        <h2 className="text-3xl font-extrabold text-gray-900">Verify Identity</h2>
-                        <p className="text-gray-500 mt-2">We require ID verification to ensure safety for all users.</p>
+                        <h2 className="text-3xl font-extrabold text-gray-900">{t.steps.verifyIdentity.title}</h2>
+                        <p className="text-gray-500 mt-2">{t.steps.verifyIdentity.subtitle}</p>
                     </div>
 
                     <div className="space-y-6">
@@ -584,10 +595,10 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                             <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <UserCheck size={24} />
                             </div>
-                            <h3 className="font-bold text-gray-900">Upload Government ID</h3>
-                            <p className="text-sm text-gray-500 mt-2">Passport, Driver's License, or National ID</p>
+                            <h3 className="font-bold text-gray-900">{t.steps.verifyIdentity.uploadGovernmentId}</h3>
+                            <p className="text-sm text-gray-500 mt-2">{t.steps.verifyIdentity.governmentIdHint}</p>
                             <label className="mt-4 inline-block text-sm font-bold text-green-700 cursor-pointer">
-                                Browse Files
+                                {t.common.browseFiles}
                                 <input
                                     type="file"
                                     className="hidden"
@@ -602,7 +613,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
 
                         <div className="bg-blue-50 p-4 rounded-xl flex gap-3 text-blue-800 text-sm">
                             <Shield className="flex-shrink-0" size={20} />
-                            <p>Your data is encrypted and securely stored. We only use this for identity verification purposes.</p>
+                            <p>{t.steps.verifyIdentity.securityInfo}</p>
                         </div>
                     </div>
                 </div>
@@ -613,10 +624,10 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                 <div className="animate-fadeIn max-w-md mx-auto w-full">
                      <div className="mb-6">
                         <span className="text-green-700 font-bold text-xs uppercase tracking-wider bg-green-50 px-3 py-1 rounded-full mb-4 inline-block">
-                            Step 6 of 6
+                            {t.common.stepBadge[5]}
                         </span>
-                        <h2 className="text-3xl font-extrabold text-gray-900">Finish Profile</h2>
-                        <p className="text-gray-500 mt-2">Upload your CV to stand out (Optional).</p>
+                        <h2 className="text-3xl font-extrabold text-gray-900">{t.steps.finishProfile.title}</h2>
+                        <p className="text-gray-500 mt-2">{t.steps.finishProfile.subtitle}</p>
                     </div>
 
                     <div className="space-y-6">
@@ -624,10 +635,10 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                             <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <FileText size={24} />
                             </div>
-                            <h3 className="font-bold text-gray-900">Upload CV / Resume</h3>
-                            <p className="text-sm text-gray-500 mt-2">PDF, DOCX up to 5MB</p>
+                            <h3 className="font-bold text-gray-900">{t.steps.finishProfile.uploadResume}</h3>
+                            <p className="text-sm text-gray-500 mt-2">{t.steps.finishProfile.resumeHint}</p>
                             <label className="mt-4 inline-block text-sm font-bold text-green-700 cursor-pointer">
-                                Browse Files
+                                {t.common.browseFiles}
                                 <input
                                     type="file"
                                     accept=".pdf,.doc,.docx"
@@ -659,10 +670,23 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                     </svg>
                 </div>
                 <span className="font-bold text-xl text-gray-900 tracking-tight">Task<span className="text-green-700">Hub</span></span>
+                <select
+                  value={locale}
+                  onClick={(event) => event.stopPropagation()}
+                  onChange={(event) => onLocaleChange(event.target.value as SupportedLocale)}
+                  className="text-lg font-bold border border-gray-200 rounded-lg bg-white px-2 py-1 leading-none text-gray-700"
+                  aria-label="Select language"
+                >
+                  {LOCALE_OPTIONS.map((option) => (
+                    <option key={option.locale} value={option.locale}>
+                      {option.flag}
+                    </option>
+                  ))}
+                </select>
             </div>
             <div className="text-sm font-medium text-gray-500">
-                <span className="hidden md:inline">Already have an account? </span>
-                <span className="text-green-700 font-bold cursor-pointer" onClick={onLogin}>Log In</span>
+                <span className="hidden md:inline">{t.nav.alreadyHaveAccount} </span>
+                <span className="text-green-700 font-bold cursor-pointer" onClick={onLogin}>{t.nav.logIn}</span>
             </div>
        </nav>
 
@@ -673,18 +697,18 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                            <CheckCircle size={64} className="text-green-600" />
                        </div>
-                       <h2 className="text-3xl font-extrabold text-gray-900">Registration Successful</h2>
+                       <h2 className="text-3xl font-extrabold text-gray-900">{t.success.title}</h2>
                        <p className="text-gray-500 mt-3">
-                           Your account was created successfully.
+                           {t.success.line1}
                        </p>
                        <p className="text-gray-500 mt-2">
-                           You will receive a confirmation email shortly.
+                           {t.success.line2}
                        </p>
                        <button
                            onClick={onRegisterComplete}
                            className="mt-8 bg-green-700 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/20"
                        >
-                           Continue
+                           {t.success.continue}
                        </button>
                    </div>
                ) : (
@@ -696,7 +720,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                                     onClick={prevStep}
                                     className="text-gray-500 font-bold text-sm hover:text-gray-900 px-4 py-2"
                                 >
-                                    Back
+                                    {t.common.back}
                                 </button>
                             ) : (
                                 <div />
@@ -708,7 +732,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                                         onClick={skipStep}
                                         className="text-gray-400 font-bold text-sm hover:text-gray-600 px-4 py-2"
                                     >
-                                        Skip for now
+                                        {t.common.skipForNow}
                                     </button>
                                 )}
 
@@ -717,7 +741,7 @@ const Register: React.FC<RegisterProps> = ({ onRegisterComplete, onCancel, onLog
                                     disabled={loading}
                                     className="bg-green-700 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/20 flex items-center gap-2"
                                 >
-                                    {loading ? 'Creating Account...' : (step === 5 ? 'Create Account' : 'Next Step')}
+                                    {loading ? t.common.creatingAccount : (step === 5 ? t.common.createAccount : t.common.nextStep)}
                                     {!loading && step < 5 && <ArrowRight size={18} />}
                                 </button>
                             </div>

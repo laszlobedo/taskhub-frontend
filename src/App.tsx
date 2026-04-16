@@ -15,6 +15,14 @@ import { authService } from './api/services/auth.service';
 import type { AuthUserDto, LoginRequestDto } from './api/dto/auth.dto';
 import { setUnauthorizedHandler } from './api/client';
 import { authStorage } from './auth/storage';
+import {
+  DEFAULT_LOCALE,
+  getLocaleFromPathname,
+  isSupportedLocale,
+  stripLocaleFromPathname,
+  type SupportedLocale,
+  withLocalePath,
+} from './i18n/locales';
 
 const VIEW_TO_PATH: Record<ViewState, string> = {
   landing: '/',
@@ -98,10 +106,19 @@ const ProtectedRoute: React.FC<{ isAllowed: boolean; redirectTo: string; childre
 const App: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const currentView = getViewFromPathname(location.pathname);
+  const localeFromPath = getLocaleFromPathname(location.pathname);
+  const currentLocale: SupportedLocale = localeFromPath ?? DEFAULT_LOCALE;
+  const localePathname = stripLocaleFromPathname(location.pathname);
+  const currentView = getViewFromPathname(localePathname);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(() => authService.isAuthenticated());
   const [currentUser, setCurrentUser] = useState<AuthUserDto | null>(null);
+
+  useEffect(() => {
+    if (!localeFromPath) {
+      navigate(withLocalePath(DEFAULT_LOCALE, localePathname), { replace: true });
+    }
+  }, [localeFromPath, localePathname, navigate]);
 
   useEffect(() => {
     const storedUser = authService.getStoredUser();
@@ -114,30 +131,30 @@ const App: React.FC = () => {
       setCurrentUser(null);
       setIsLoggedIn(false);
 
-      if (window.location.pathname !== '/login') {
-        navigate('/login');
+      if (stripLocaleFromPathname(window.location.pathname) !== '/login') {
+        navigate(withLocalePath(currentLocale, '/login'));
       }
     });
 
     return () => {
       setUnauthorizedHandler(null);
     };
-  }, [navigate]);
+  }, [currentLocale, navigate]);
 
   const handleOpenLogin = () => {
-    navigate('/login');
+    navigate(withLocalePath(currentLocale, '/login'));
   };
 
   const handleLogin = async (payload: LoginRequestDto) => {
     const user = await authService.login(payload);
     setCurrentUser(user);
     setIsLoggedIn(true);
-    navigate('/');
+    navigate(withLocalePath(currentLocale, '/'));
   };
 
   const handleLogout = async () => {
     window.sessionStorage.setItem('taskhub.logoutTransition', 'true');
-    navigate('/');
+    navigate(withLocalePath(currentLocale, '/'));
     await authService.logout();
     setCurrentUser(null);
     setIsLoggedIn(false);
@@ -146,7 +163,11 @@ const App: React.FC = () => {
 
   const handleViewNavigation = (view: ViewState | string) => {
     const nextPath = isViewState(view) ? VIEW_TO_PATH[view] : '/';
-    navigate(nextPath);
+    navigate(withLocalePath(currentLocale, nextPath));
+  };
+
+  const handleLocaleChange = (locale: SupportedLocale) => {
+    navigate(withLocalePath(locale, localePathname));
   };
 
   return (
@@ -194,13 +215,16 @@ const App: React.FC = () => {
           isLoggedIn={isLoggedIn}
           currentUser={currentUser}
           onLogout={handleLogout}
+          locale={currentLocale}
+          onLocaleChange={handleLocaleChange}
         />
       )}
 
       <main className={`flex-1 transition-all duration-300 ${currentView !== 'landing' && currentView !== 'register' && currentView !== 'preview' ? 'lg:ml-0 pt-16 lg:pt-0' : ''}`}>
         <Routes>
+          <Route path="/" element={<Navigate to={withLocalePath(DEFAULT_LOCALE, '/')} replace />} />
           <Route
-            path="/"
+            path="/:lang"
             element={
               <Landing
                 onGetStarted={handleViewNavigation}
@@ -208,23 +232,27 @@ const App: React.FC = () => {
                 currentUser={currentUser}
                 onLogin={handleOpenLogin}
                 onLogout={handleLogout}
+                locale={currentLocale}
+                onLocaleChange={handleLocaleChange}
               />
             }
           />
           <Route
-            path="/login"
+            path="/:lang/login"
             element={
-              <ProtectedRoute isAllowed={!isLoggedIn} redirectTo="/">
+              <ProtectedRoute isAllowed={!isLoggedIn} redirectTo={withLocalePath(currentLocale, '/')}>
                 <Login
                   onLogin={handleLogin}
                   onCancel={() => handleViewNavigation('landing')}
                   onGoToRegister={() => handleViewNavigation('register')}
+                  locale={currentLocale}
+                  onLocaleChange={handleLocaleChange}
                 />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/register"
+            path="/:lang/register"
             element={
               <Register
                 onRegisterComplete={() => {
@@ -232,15 +260,17 @@ const App: React.FC = () => {
                 }}
                 onCancel={() => handleViewNavigation('login')}
                 onLogin={handleOpenLogin}
+                locale={currentLocale}
+                onLocaleChange={handleLocaleChange}
               />
             }
           />
           {DASHBOARD_TAB_ROUTES.map((route) => (
             <React.Fragment key={route.path}>
               <Route
-                path={route.path}
+                path={`/:lang${route.path}`}
                 element={(
-                  <ProtectedRoute isAllowed={isLoggedIn} redirectTo="/login">
+                  <ProtectedRoute isAllowed={isLoggedIn} redirectTo={withLocalePath(currentLocale, '/login')}>
                     <Dashboard initialTab={route.tab} />
                   </ProtectedRoute>
                 )}
@@ -248,9 +278,9 @@ const App: React.FC = () => {
             </React.Fragment>
           ))}
           <Route
-            path="/find-job"
+            path="/:lang/find-job"
             element={
-              <ProtectedRoute isAllowed={isLoggedIn} redirectTo="/login">
+              <ProtectedRoute isAllowed={isLoggedIn} redirectTo={withLocalePath(currentLocale, '/login')}>
               <FindTasks
                   onNavigate={(view) => {
                     if (isViewState(view)) {
@@ -264,37 +294,47 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="/post-job"
+            path="/:lang/post-job"
             element={(
-              <ProtectedRoute isAllowed={isLoggedIn} redirectTo="/login">
+              <ProtectedRoute isAllowed={isLoggedIn} redirectTo={withLocalePath(currentLocale, '/login')}>
                 <PostTask />
               </ProtectedRoute>
             )}
           />
           <Route
-            path="/calendar"
+            path="/:lang/calendar"
             element={(
-              <ProtectedRoute isAllowed={isLoggedIn} redirectTo="/login">
+              <ProtectedRoute isAllowed={isLoggedIn} redirectTo={withLocalePath(currentLocale, '/login')}>
                 <Schedule />
               </ProtectedRoute>
             )}
           />
           <Route
-            path="/profile"
+            path="/:lang/profile"
             element={(
-              <ProtectedRoute isAllowed={isLoggedIn} redirectTo="/login">
-                <Profile />
+              <ProtectedRoute isAllowed={isLoggedIn} redirectTo={withLocalePath(currentLocale, '/login')}>
+                <Profile locale={currentLocale} />
               </ProtectedRoute>
             )}
           />
-          <Route path="/preview" element={<DesignPreview onExit={() => handleViewNavigation('landing')} />} />
+          <Route path="/:lang/preview" element={<DesignPreview onExit={() => handleViewNavigation('landing')} />} />
 
           {LEGACY_REDIRECTS.map((redirect) => (
             <React.Fragment key={redirect.from}>
-              <Route path={redirect.from} element={<Navigate to={redirect.to} replace />} />
+              <Route
+                path={`/:lang${redirect.from}`}
+                element={<Navigate to={withLocalePath(currentLocale, redirect.to)} replace />}
+              />
             </React.Fragment>
           ))}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="*"
+            element={
+              isSupportedLocale(location.pathname.split('/').filter(Boolean)[0] ?? '')
+                ? <Navigate to={withLocalePath(currentLocale, '/')} replace />
+                : <Navigate to={withLocalePath(DEFAULT_LOCALE, '/')} replace />
+            }
+          />
         </Routes>
       </main>
 

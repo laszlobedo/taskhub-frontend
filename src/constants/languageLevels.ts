@@ -12,6 +12,30 @@ export const LANGUAGE_LEVEL_LABEL: Record<LanguageLevel, string> = {
   [LanguageLevel.Native]: 'Native',
 };
 
+const LANGUAGE_LEVEL_LABELS_BY_LOCALE: Record<
+  'en' | 'ro' | 'hu',
+  Record<LanguageLevel, string>
+> = {
+  en: LANGUAGE_LEVEL_LABEL,
+  ro: {
+    [LanguageLevel.Beginner]: 'Începător',
+    [LanguageLevel.Advanced]: 'Avansat',
+    [LanguageLevel.Fluent]: 'Fluent',
+    [LanguageLevel.Native]: 'Nativ',
+  },
+  hu: {
+    [LanguageLevel.Beginner]: 'Kezdő',
+    [LanguageLevel.Advanced]: 'Haladó',
+    [LanguageLevel.Fluent]: 'Folyékony',
+    [LanguageLevel.Native]: 'Anyanyelvi',
+  },
+};
+
+export const getLanguageLevelLabel = (
+  locale: 'en' | 'ro' | 'hu',
+  level: LanguageLevel,
+): string => LANGUAGE_LEVEL_LABELS_BY_LOCALE[locale][level];
+
 export const LANGUAGE_LEVEL_COLOR: Record<LanguageLevel, { badge: string; bar: string }> = {
   [LanguageLevel.Beginner]: {
     badge: 'text-red-700 bg-red-50',

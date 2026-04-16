@@ -1,17 +1,28 @@
 import React, { useState } from 'react';
 import { ArrowRight, Lock, Mail } from 'lucide-react';
+import type { SupportedLocale } from '@/i18n/locales';
+import { loginTranslations } from '@/i18n/translations/login';
 
 interface LoginProps {
   onLogin: (payload: { email: string; password: string }) => Promise<void> | void;
   onCancel: () => void;
   onGoToRegister: () => void;
+  locale: SupportedLocale;
+  onLocaleChange: (locale: SupportedLocale) => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin, onCancel, onGoToRegister }) => {
+const LOCALE_OPTIONS: Array<{ locale: SupportedLocale; flag: string }> = [
+  { locale: 'en', flag: '🇬🇧' },
+  { locale: 'ro', flag: '🇷🇴' },
+  { locale: 'hu', flag: '🇭🇺' },
+];
+
+const Login: React.FC<LoginProps> = ({ onLogin, onCancel, onGoToRegister, locale, onLocaleChange }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const t = loginTranslations[locale];
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -25,7 +36,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onCancel, onGoToRegister }) => {
       });
     } catch (submitError) {
       setError(
-        submitError instanceof Error ? submitError.message : 'Login failed. Please try again.',
+        submitError instanceof Error ? submitError.message : t.fallbackError,
       );
     } finally {
       setIsSubmitting(false);
@@ -49,11 +60,24 @@ const Login: React.FC<LoginProps> = ({ onLogin, onCancel, onGoToRegister }) => {
           <span className="font-bold text-xl text-gray-900 tracking-tight">
             Task<span className="text-green-700">Hub</span>
           </span>
+          <select
+            value={locale}
+            onClick={(event) => event.stopPropagation()}
+            onChange={(event) => onLocaleChange(event.target.value as SupportedLocale)}
+            className="text-lg font-bold border border-gray-200 rounded-lg bg-white px-2 py-1 leading-none text-gray-700"
+            aria-label="Select language"
+          >
+            {LOCALE_OPTIONS.map((option) => (
+              <option key={option.locale} value={option.locale}>
+                {option.flag}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="text-sm font-medium text-gray-500">
-          <span className="hidden md:inline">Need an account? </span>
+          <span className="hidden md:inline">{t.needAccount} </span>
           <span className="text-green-700 font-bold cursor-pointer" onClick={onGoToRegister}>
-            Sign Up
+            {t.signUp}
           </span>
         </div>
       </nav>
@@ -62,15 +86,15 @@ const Login: React.FC<LoginProps> = ({ onLogin, onCancel, onGoToRegister }) => {
         <div className="w-full max-w-md animate-fadeIn">
           <div className="mb-8">
             <span className="text-green-700 font-bold text-xs uppercase tracking-wider bg-green-50 px-3 py-1 rounded-full mb-4 inline-block">
-              Welcome back
+              {t.welcomeBack}
             </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">Log In</h1>
-            <p className="text-gray-500 mt-2">Access your dashboard and continue where you left off.</p>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">{t.title}</h1>
+            <p className="text-gray-500 mt-2">{t.subtitle}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Email Address</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.emailAddress}</label>
               <div className="relative">
                 <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -80,13 +104,13 @@ const Login: React.FC<LoginProps> = ({ onLogin, onCancel, onGoToRegister }) => {
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-green-500"
-                  placeholder="you@example.com"
+                  placeholder={t.emailPlaceholder}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Password</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t.password}</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -96,7 +120,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onCancel, onGoToRegister }) => {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-green-500"
-                  placeholder="Enter your password"
+                  placeholder={t.passwordPlaceholder}
                 />
               </div>
             </div>
@@ -112,7 +136,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onCancel, onGoToRegister }) => {
               disabled={isSubmitting}
               className="w-full bg-green-700 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? 'Logging In...' : 'Log In'}
+              {isSubmitting ? t.submitting : t.submit}
               {!isSubmitting && <ArrowRight size={18} />}
             </button>
           </form>

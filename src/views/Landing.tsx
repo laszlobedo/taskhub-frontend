@@ -3,6 +3,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ArrowRight, ShieldCheck, Search, Star, Briefcase, ChevronDown, User, LogOut, Settings, LayoutDashboard, CheckCircle, Quote, MessageCircle, Hexagon, Menu, X, Wallet, Award, Users, Calendar } from 'lucide-react';
 import { ViewState } from '../types';
 import type { AuthUserDto } from '../api/dto/auth.dto';
+import type { SupportedLocale } from '@/i18n/locales';
+import { landingTranslations } from '@/i18n/translations/landing';
+import { JOB_CATEGORY_SLUGS, jobCategoryTranslations } from '@/i18n/translations/job.category';
 
 interface LandingProps {
   onGetStarted: (view: ViewState) => void;
@@ -10,9 +13,17 @@ interface LandingProps {
   currentUser: AuthUserDto | null;
   onLogin: () => void;
   onLogout: () => void;
+  locale: SupportedLocale;
+  onLocaleChange: (locale: SupportedLocale) => void;
 }
 
-const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser, onLogin, onLogout }) => {
+const LOCALE_OPTIONS: Array<{ locale: SupportedLocale; flag: string; label: string }> = [
+  { locale: 'en', flag: '🇬🇧', label: '' },
+  { locale: 'ro', flag: '🇷🇴', label: '' },
+  { locale: 'hu', flag: '🇭🇺', label: '' },
+];
+
+const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser, onLogin, onLogout, locale, onLocaleChange }) => {
   const [activeTab, setActiveTab] = useState<ViewState>('landing');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
@@ -36,6 +47,8 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
   })();
   const profileEmail = currentUser?.email ?? 'No email';
   const profileBadge = currentUser?.is_verified ? 'Verified Pro' : 'Member';
+  const t = landingTranslations[locale];
+  const authActionsGapClass = locale === 'en' ? 'gap-3' : 'gap-1.5';
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -67,9 +80,9 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
   }, [reviews.length]);
 
   const navLinks: Array<{ id: ViewState; label: string }> = [
-    { id: 'landing', label: 'Home' },
-    { id: 'find-job', label: 'Find Job' },
-    { id: 'post-job', label: 'Post a Job' },
+    { id: 'landing', label: t.nav.home },
+    { id: 'find-job', label: t.nav.findJob },
+    { id: 'post-job', label: t.nav.postJob },
   ];
 
   const AppleLogo = () => (
@@ -78,56 +91,12 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
       </svg>
   );
 
-  const categories = [
-      {
-          image: "https://i.postimg.cc/rF4vZRNZ/bernie-almanzar-e-Fc-Rl-Qm9k-I4-unsplash.jpg",
-          label: "Home Repairs",
-          subtitle: "Avg: 200 RON",
-          description: "Plumbing, electrical, and general fixes."
-      },
-      {
-          image: "https://i.postimg.cc/pXjgc5JD/anton_Sn_Kfm_C1I9f_U_unsplash.jpg",
-          label: "Cleaning",
-          subtitle: "Avg: 150 RON",
-          description: "Apartment and deep cleaning services."
-      },
-      {
-          image: "https://i.postimg.cc/J4X9YH5Z/richard_stachmann_Ggm_Z23gr_WNY_unsplash.jpg",
-          label: "Moving",
-          subtitle: "Avg: 300 RON",
-          description: "Heavy lifting and furniture transport."
-      },
-      {
-          image: "https://i.postimg.cc/zD6skFKn/annie_spratt_ch_j5g_H6INY_unsplash.jpg",
-          label: "Gardening",
-          subtitle: "Avg: 180 RON",
-          description: "Lawn care, planting, and maintenance."
-      },
-      {
-          image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop",
-          label: "Web Design",
-          subtitle: "Avg: 1200 RON",
-          description: "Websites, UI/UX, and graphic design."
-      },
-      {
-          image: "https://images.unsplash.com/photo-1542435503-956c469947f6?q=80&w=600&auto=format&fit=crop",
-          label: "Translation",
-          subtitle: "Avg: 50 RON/pg",
-          description: "Professional document translation."
-      },
-      {
-          image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=600&auto=format&fit=crop",
-          label: "Virtual Assistant",
-          subtitle: "Avg: 40 RON/hr",
-          description: "Admin support and data entry."
-      },
-      {
-          image: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=600&auto=format&fit=crop",
-          label: "Digital Marketing",
-          subtitle: "Avg: 800 RON",
-          description: "SEO, social media, and ads."
-      }
-  ];
+  const categories = JOB_CATEGORY_SLUGS.map((slug) => ({
+    image: `/images/${slug}.jpg`,
+    label: jobCategoryTranslations[locale][slug].label,
+    subtitle: '',
+    description: jobCategoryTranslations[locale][slug].description,
+  }));
 
   const currentReviews = [
       reviews[currentReviewIndex % reviews.length],
@@ -156,14 +125,26 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                     </div>
                     <span className="font-bold text-lg tracking-tight">Task<span className="text-green-700">Hub</span></span>
                 </div>
+                <select
+                  value={locale}
+                  onChange={(event) => onLocaleChange(event.target.value as SupportedLocale)}
+                  className="text-lg font-bold border border-gray-200 rounded-lg bg-white px-2 py-1 leading-none text-gray-700"
+                  aria-label="Select language"
+                >
+                  {LOCALE_OPTIONS.map((option) => (
+                    <option key={option.locale} value={option.locale}>
+                      {option.flag}
+                    </option>
+                  ))}
+                </select>
 
                 {!isLoggedIn ? (
                     <div className="flex items-center gap-2">
-                        <button onClick={onLogin} className="text-gray-600 font-bold text-sm">Log In</button>
-                        <button onClick={() => onGetStarted('register')} className="bg-gray-900 text-white px-3 py-1.5 rounded-lg font-bold text-sm">Sign Up</button>
+                        <button onClick={onLogin} className="text-gray-600 font-bold text-sm">{t.auth.logIn}</button>
+                        <button onClick={() => onGetStarted('register')} className="bg-gray-900 text-white px-3 py-1.5 rounded-lg font-bold text-sm">{t.auth.signUp}</button>
                     </div>
                 ) : (
-                    <div className="relative">
+                    <div className="relative flex items-center gap-2">
                         <button
                             onClick={() => setIsProfileOpen(!isProfileOpen)}
                             className="w-10 h-10 rounded-full border border-gray-200 p-0.5"
@@ -217,7 +198,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 text-red-600 font-bold transition-colors text-left"
                              >
                                  <LogOut size={18} />
-                                 Log Out
+                                 Log Outqwe
                              </button>
                          </div>
                     </div>
@@ -226,12 +207,26 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
       </div>
 
       <nav className="border-b border-gray-100 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between sticky top-0 bg-white/95 backdrop-blur-md z-50 transition-all duration-300 shadow-sm md:shadow-none hidden md:flex">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => onGetStarted('landing')}>
-            <div className="w-9 h-9 bg-green-700 rounded-xl flex items-center justify-center shadow-green-700/20 shadow-lg relative overflow-hidden">
-               <Hexagon size={20} className="text-white fill-white relative z-10" strokeWidth={0} />
-               <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
+        <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => onGetStarted('landing')}>
+                <div className="w-9 h-9 bg-green-700 rounded-xl flex items-center justify-center shadow-green-700/20 shadow-lg relative overflow-hidden">
+                   <Hexagon size={20} className="text-white fill-white relative z-10" strokeWidth={0} />
+                   <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
+                </div>
+                <span className="font-bold text-xl tracking-tight">Task<span className="text-green-700">Hub</span></span>
             </div>
-            <span className="font-bold text-xl tracking-tight">Task<span className="text-green-700">Hub</span></span>
+            <select
+              value={locale}
+              onChange={(event) => onLocaleChange(event.target.value as SupportedLocale)}
+              className="text-lg font-bold border border-gray-200 rounded-lg bg-white px-2 py-1 leading-none text-gray-700"
+              aria-label="Select language"
+            >
+              {LOCALE_OPTIONS.map((option) => (
+                <option key={option.locale} value={option.locale}>
+                  {option.flag}
+                </option>
+              ))}
+            </select>
         </div>
 
         <div className="flex bg-gray-100/80 p-1 rounded-xl md:rounded-full relative backdrop-blur-sm shadow-inner w-full md:w-auto overflow-x-auto md:overflow-visible justify-between md:justify-start">
@@ -273,13 +268,13 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                                 <p className="text-xs text-gray-500 truncate">{profileEmail}</p>
                             </div>
                             <button onClick={() => onGetStarted('dashboard')} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl text-left">
-                                <LayoutDashboard size={16} /> Dashboard
+                                <LayoutDashboard size={16} /> {t.profileMenu.dashboard}
                             </button>
                             <button onClick={() => onGetStarted('profile')} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl text-left">
-                                <User size={16} /> My Profile
+                                <User size={16} /> {t.profileMenu.myProfile}
                             </button>
                             <button onClick={() => onGetStarted('settings')} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl text-left">
-                                <Settings size={16} /> Settings
+                                <Settings size={16} /> {t.profileMenu.settings}
                             </button>
                             <div className="h-px bg-gray-50 my-2"></div>
                             <button
@@ -289,24 +284,24 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                                 }}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl text-left"
                             >
-                                <LogOut size={16} /> Sign Out
+                                <LogOut size={16} /> {t.profileMenu.signOut}
                             </button>
                         </div>
                     )}
                 </div>
             ) : (
-                <div className="flex items-center gap-3">
+                <div className={`flex items-center ${authActionsGapClass}`}>
                     <button
                         onClick={onLogin}
                         className="text-gray-600 font-bold text-sm hover:text-gray-900 px-3 py-2"
                     >
-                        Log In
+                        {t.auth.logIn}
                     </button>
                     <button
                         onClick={() => onGetStarted('register')}
                         className="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-black transition shadow-lg shadow-gray-900/10 whitespace-nowrap"
                     >
-                        Sign Up
+                        {t.auth.signUp}
                     </button>
                 </div>
             )}
@@ -321,24 +316,24 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                     <Search size={32} className="text-gray-900" strokeWidth={2.5}/>
                  </div>
                  <h1 className="text-3xl md:text-5xl lg:text-7xl font-extrabold text-gray-900 tracking-tight leading-[1] mb-8 relative z-10 text-left md:text-left">
-                    I need a <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-500">Professional</span>
+                    {t.hero.needA} <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-700 to-green-500">{t.hero.professional}</span>
                  </h1>
                  <p className="text-lg text-gray-500 mb-10 max-w-md leading-relaxed font-medium relative z-10">
-                    Find verified local help for any project. From renovations to digital tasks, we've got you covered.
+                    {t.hero.needDescription}
                  </p>
                  <button
                     onClick={() => onGetStarted('post-job')}
                     className="relative z-10 group bg-gray-900 text-white px-8 py-4 rounded-2xl font-bold text-lg flex items-center gap-3 hover:bg-black transition-all shadow-xl shadow-gray-900/10 transform hover:-translate-y-1 w-full md:w-auto justify-center md:justify-start"
                 >
-                    Post a Job <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
+                    {t.hero.postJobCta} <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
                 </button>
             </div>
 
             <div className="relative p-8 md:p-20 flex flex-col justify-center items-start text-left md:items-end md:text-right overflow-hidden group h-[500px] md:h-full">
                  <div className="absolute inset-0 z-0">
                     <img
-                        src="https://i.postimg.cc/D0s3Gxfw/g9-3-800x450.jpg"
+                        src="/images/main_image.jpg"
                         className="w-full h-full object-cover transform scale-105"
                         alt="Professional working"
                     />
@@ -351,17 +346,17 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                         <Briefcase size={32} className="text-white" strokeWidth={2.5}/>
                     </div>
                     <h1 className="text-3xl md:text-5xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1] mb-8 drop-shadow-lg text-left md:text-right">
-                        I want to <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-400">Earn Money</span>
+                        {t.hero.wantTo} <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-400">{t.hero.earnMoney}</span>
                     </h1>
                     <p className="text-lg text-white mb-10 max-w-md leading-relaxed font-medium drop-shadow-md">
-                        Join thousands of Romanian professionals. Remote or on-site, set your own rates and get paid.
+                        {t.hero.earnDescription}
                     </p>
                     <button
                         onClick={() => onGetStarted('find-job')}
                         className="group bg-green-600 text-white px-8 py-3 rounded-2xl font-bold text-lg flex items-center gap-3 hover:bg-green-500 transition-all shadow-xl shadow-green-900/50 transform hover:-translate-y-1 w-full md:w-auto justify-center md:justify-start"
                     >
-                        Find Work Now <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
+                        {t.hero.findWorkCta} <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
                     </button>
                  </div>
             </div>
@@ -403,10 +398,10 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
           <div className="max-w-7xl mx-auto px-6">
               <div className="text-center mb-16">
                   <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                      Get it done, <br className="block md:hidden" />
-                      <span className="text-green-700">hassle-free</span>
+                      {t.services.titlePrefix} <br className="block md:hidden" />
+                      <span className="text-green-700">{t.services.titleHighlight}</span>
                   </h2>
-                  <p className="text-gray-500 text-lg max-w-2xl mx-auto">From home repairs to digital services, find the right professional for any job.</p>
+                  <p className="text-gray-500 text-lg max-w-2xl mx-auto">{t.services.description}</p>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-16">
@@ -419,9 +414,6 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
                           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                              <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-2 bg-[#15803d] text-white backdrop-blur-md">
-                                  {cat.subtitle}
-                              </span>
                               <h3 className="font-bold text-white text-lg md:text-xl lg:text-2xl mb-1 leading-tight">{cat.label}</h3>
                               <p className="text-gray-300 text-xs font-medium mt-2 hidden md:block">
                                   {cat.description}
@@ -436,7 +428,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                     onClick={() => onGetStarted('find-job')}
                     className="bg-white border-2 border-green-700 text-green-700 px-8 py-3 rounded-2xl font-bold hover:bg-green-700 hover:text-white transition-colors duration-300 flex items-center gap-2"
                   >
-                      See all jobs <ArrowRight size={18} />
+                      {t.services.seeAllJobsCta} <ArrowRight size={18} />
                   </button>
               </div>
           </div>
@@ -445,7 +437,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
       <section className="py-24 relative overflow-hidden text-white">
           <div className="absolute inset-0 z-0">
               <img
-                src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2000&auto=format&fit=crop"
+                src="/images/background.jpg"
                 className="w-full h-full object-cover"
                 alt="Background"
               />
@@ -457,16 +449,12 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                <div className="flex flex-col md:flex-row items-center gap-16">
                    <div className="w-full md:w-2/3 space-y-12">
                         <div>
-                             <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight">How it works</h2>
-                             <p className="text-white/90 text-lg md:text-xl font-medium leading-relaxed drop-shadow-md">Simple for both sides. Whether you're hiring or working, we make it seamless.</p>
+                             <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6 tracking-tight">{t.howItWorks.title}</h2>
+                             <p className="text-white/90 text-lg md:text-xl font-medium leading-relaxed drop-shadow-md">{t.howItWorks.description}</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {[
-                                { step: "01", title: "Post or Find", desc: "Clients post their needs. Workers browse jobs that fit their skills." },
-                                { step: "02", title: "Connect & Agree", desc: "Chat securely, check reviews, and agree on price and details." },
-                                { step: "03", title: "Work & Pay", desc: "Job gets done. Payment is released securely upon completion." }
-                            ].map((item, i) => (
+                            {t.howItWorks.steps.map((item, i) => (
                                 <div key={i} className="flex flex-col gap-4 group bg-white/5 p-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-all backdrop-blur-sm">
                                     <div className="w-12 h-12 bg-green-600 text-white border-2 border-green-600 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg group-hover:bg-green-500 group-hover:scale-110 group-hover:shadow-green-900/50 transition-all duration-300 transform hover:-translate-y-1">
                                         {item.step}
@@ -483,7 +471,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                             onClick={() => onGetStarted('find-job')}
                             className="bg-green-600 text-white px-8 py-3 rounded-2xl font-bold hover:bg-green-500 transition-all shadow-xl shadow-gray-900/50 transform hover:-translate-y-1 border-2 border-transparent hover:border-green-400 w-full md:w-auto flex items-center justify-center gap-3 whitespace-nowrap"
                         >
-                            Find Work Now <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
+                            {t.howItWorks.cta} <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
                         </button>
                    </div>
                </div>
@@ -494,8 +482,8 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
 
           <div className="max-w-7xl mx-auto px-6 relative z-10">
                <div className="text-center mb-16">
-                   <h2 className="text-4xl font-bold text-gray-900 mb-4">Trusted by Romania</h2>
-                   <p className="text-gray-500 text-lg">Join thousands of verified users who trust our platform.</p>
+                   <h2 className="text-4xl font-bold text-gray-900 mb-4">{t.trust.title}</h2>
+                   <p className="text-gray-500 text-lg">{t.trust.description}</p>
                </div>
 
                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 transition-all duration-700 ease-in-out">
@@ -565,7 +553,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, isLoggedIn, currentUser
                             <span className="font-bold text-xl text-gray-900 tracking-tight">Task<span className="text-green-700">Hub</span></span>
                         </div>
                         <p className="text-gray-500 max-w-sm mb-6">
-                            Connecting people who need help with trusted local professionals. The easiest way to get things done in Romania.
+                            {t.footer.brandDescription}
                         </p>
                   </div>
 

@@ -4,13 +4,19 @@ import type { DetailedUserDto } from '@/api/dto/user.dto';
 import { useNavigate } from 'react-router-dom';
 import {
   LANGUAGE_LEVEL_COLOR,
-  LANGUAGE_LEVEL_LABEL,
+  getLanguageLevelLabel,
   LanguageLevel,
   normalizeLanguageLevel,
 } from '../constants/languageLevels';
 import { userService } from '@/api/services/user.service';
+import type { SupportedLocale } from '@/i18n/locales';
+import { profileTranslations } from '@/i18n/translations/profile';
 
-const Profile: React.FC = () => {
+interface ProfileProps {
+  locale: SupportedLocale;
+}
+
+const Profile: React.FC<ProfileProps> = ({ locale }) => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'given-reviews'>('overview');
   const [currentUser, setCurrentUser] = useState<DetailedUserDto | null>(null);
@@ -27,6 +33,7 @@ const Profile: React.FC = () => {
   const coverMenuRef = useRef<HTMLDivElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
   const profileInputRef = useRef<HTMLInputElement | null>(null);
+  const t = profileTranslations[locale];
 
   useEffect(() => {
     let isMounted = true;
@@ -47,7 +54,7 @@ const Profile: React.FC = () => {
           return;
         }
 
-        setErrorMessage(error instanceof Error ? error.message : 'Failed to load profile data.');
+        setErrorMessage(error instanceof Error ? error.message : t.loadErrorFallback);
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -99,11 +106,11 @@ const Profile: React.FC = () => {
   const joinedAtLabel = (() => {
     const raw = currentUser?.created_at;
     if (!raw) {
-      return 'Joined recently';
+      return t.joinedRecently;
     }
     const date = new Date(raw);
     if (Number.isNaN(date.getTime())) {
-      return 'Joined recently';
+      return t.joinedRecently;
     }
 
     const formatted = new Intl.DateTimeFormat('en-US', {
@@ -111,7 +118,7 @@ const Profile: React.FC = () => {
       year: 'numeric',
     }).format(date);
 
-    return `Joined ${formatted}`;
+    return `${t.joinedPrefix} ${formatted}`;
   })();
 
   const openImageViewer = (imageSrc: string | null, imageAlt: string) => {
@@ -132,17 +139,17 @@ const Profile: React.FC = () => {
   const formatWeeksAgo = (createdAt: string): string => {
     const createdDate = new Date(createdAt);
     if (Number.isNaN(createdDate.getTime())) {
-      return 'Recently';
+      return t.recently;
     }
 
     const diffMs = Date.now() - createdDate.getTime();
     const weekMs = 7 * 24 * 60 * 60 * 1000;
     if (diffMs < weekMs) {
-      return 'Recently';
+      return t.recently;
     }
     const weeks = Math.floor(diffMs / weekMs);
 
-    return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+    return weeks === 1 ? t.weekAgo : `${weeks} ${t.weeksAgoSuffix}`;
   };
 
   const resolveUserImage = (imagePath?: string): string => {
@@ -179,7 +186,7 @@ const Profile: React.FC = () => {
       setCurrentUser(updatedUser);
       setIsCoverMenuOpen(false);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete cover picture.');
+      setErrorMessage(error instanceof Error ? error.message : t.cover.deleteError);
     }
   };
 
@@ -204,7 +211,7 @@ const Profile: React.FC = () => {
       setCurrentUser(updatedUser);
       setIsAvatarMenuOpen(false);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to update profile picture.');
+      setErrorMessage(error instanceof Error ? error.message : t.avatar.updateError);
     } finally {
       event.target.value = '';
     }
@@ -222,7 +229,7 @@ const Profile: React.FC = () => {
       setCurrentUser(updatedUser);
       setIsAvatarMenuOpen(false);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete profile picture.');
+      setErrorMessage(error instanceof Error ? error.message : t.avatar.deleteError);
     }
   };
 
@@ -240,7 +247,7 @@ const Profile: React.FC = () => {
       });
       setCurrentUser(updatedUser);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to update cover picture.');
+      setErrorMessage(error instanceof Error ? error.message : t.cover.updateError);
     } finally {
       event.target.value = '';
     }
@@ -250,7 +257,7 @@ const Profile: React.FC = () => {
     return (
       <div className="p-4 md:p-8 max-w-[1600px] mx-auto min-h-screen">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-gray-600 font-medium">
-          Loading profile...
+          {t.loading}
         </div>
       </div>
     );
@@ -270,7 +277,7 @@ const Profile: React.FC = () => {
     return (
       <div className="p-4 md:p-8 max-w-[1600px] mx-auto min-h-screen">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-gray-600 font-medium">
-          Profile data is unavailable. Please refresh the page.
+          {t.unavailable}
         </div>
       </div>
     );
@@ -316,7 +323,7 @@ const Profile: React.FC = () => {
                   }}
                   className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition opacity-0 group-hover:opacity-100"
                >
-                   <Camera size={16}/> Edit Cover
+                   <Camera size={16}/> {t.cover.editCover}
                </button>
                {isCoverMenuOpen && (
                  <div className="absolute right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-lg p-1.5 w-48 z-30">
@@ -325,7 +332,7 @@ const Profile: React.FC = () => {
                      onClick={handleOpenCoverPicker}
                      className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
                    >
-                     {hasCoverPicture ? 'Update cover photo' : 'Add cover photo'}
+                     {hasCoverPicture ? t.cover.updateCoverPhoto : t.cover.addCoverPhoto}
                    </button>
                    {hasCoverPicture && (
                      <button
@@ -333,7 +340,7 @@ const Profile: React.FC = () => {
                        onClick={handleDeleteCover}
                        className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50"
                      >
-                       Delete cover photo
+                       {t.cover.deleteCoverPhoto}
                      </button>
                    )}
                  </div>
@@ -347,14 +354,14 @@ const Profile: React.FC = () => {
                       <div className="p-1.5 bg-white rounded-[2rem] shadow-sm">
                         <img src={profileImage} className="w-32 h-32 md:w-40 md:h-40 rounded-[1.8rem] object-cover border border-gray-100 shadow-inner" />
                       </div>
-                      <div className="absolute bottom-4 right-4 bg-blue-500 text-white p-2 rounded-full border-4 border-white shadow-sm" title="Identity Verified">
+                      <div className="absolute bottom-4 right-4 bg-blue-500 text-white p-2 rounded-full border-4 border-white shadow-sm" title={t.avatar.verifiedTitle}>
                           <ShieldCheck size={20} fill="currentColor" />
                       </div>
                       <button
                         type="button"
                         onClick={() => setIsAvatarMenuOpen((prev) => !prev)}
                         className="absolute inset-0 bg-black/40 rounded-[2rem] m-1.5 flex items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition cursor-pointer"
-                        aria-label="Open profile picture actions"
+                        aria-label={t.avatar.openActionsAria}
                       >
                           <Camera size={24} className="text-white"/>
                       </button>
@@ -370,21 +377,21 @@ const Profile: React.FC = () => {
                                 }}
                                 className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
                               >
-                                View profile photo
+                                {t.avatar.viewProfilePhoto}
                               </button>
                               <button
                                 type="button"
                                 onClick={handleOpenProfilePicker}
                                 className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
                               >
-                                Update profile photo
+                                {t.avatar.updateProfilePhoto}
                               </button>
                               <button
                                 type="button"
                                 onClick={handleDeleteProfile}
                                 className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-red-600 hover:bg-red-50"
                               >
-                                Delete profile photo
+                                {t.avatar.deleteProfilePhoto}
                               </button>
                             </>
                           ) : (
@@ -393,7 +400,7 @@ const Profile: React.FC = () => {
                               onClick={handleOpenProfilePicker}
                               className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50"
                             >
-                              Add profile photo
+                              {t.avatar.addProfilePhoto}
                             </button>
                           )}
                         </div>
@@ -419,7 +426,7 @@ const Profile: React.FC = () => {
                                       fill="currentColor"
                                       className={currentUser.is_verified ? 'text-green-500' : 'text-yellow-500'}
                                     />
-                                    {currentUser.is_verified ? 'Verified Pro' : 'Verification needed'}
+                                    {currentUser.is_verified ? t.verification.verifiedPro : t.verification.verificationNeeded}
                                 </span>
                               </div>
 
@@ -432,20 +439,20 @@ const Profile: React.FC = () => {
                                   <span className="hidden md:inline text-gray-300">|</span>
                                   <span className={`flex items-center gap-1.5 ${currentUser.is_verified ? 'text-green-600' : 'text-yellow-700'}`}>
                                     <div className={`w-2 h-2 rounded-full animate-pulse ${currentUser.is_verified ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                                    {currentUser.is_verified ? 'Available for work' : 'Verification needed'}
+                                    {currentUser.is_verified ? t.verification.availableForWork : t.verification.verificationNeeded}
                                   </span>
                               </div>
                           </div>
 
                           <div className="flex gap-3 w-full md:w-auto mt-2 md:mt-0">
                               <button className="flex-1 md:flex-none px-6 py-3 bg-white border border-gray-200 rounded-xl font-bold text-gray-700 hover:bg-gray-50 transition shadow-sm flex items-center justify-center gap-2">
-                                  <Share2 size={18}/> Share
+                                  <Share2 size={18}/> {t.actions.share}
                               </button>
                               <button
                                 onClick={() => navigate('/dashboard/settings')}
                                 className="flex-1 md:flex-none px-6 py-3 bg-green-700 text-white rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/20 flex items-center justify-center gap-2"
                               >
-                                  <Edit3 size={18} /> Edit Profile
+                                  <Edit3 size={18} /> {t.actions.editProfile}
                               </button>
                           </div>
                       </div>
@@ -468,7 +475,7 @@ const Profile: React.FC = () => {
               onClick={closeImageViewer}
               className="absolute top-3 right-3 text-white text-sm font-bold px-3 py-1.5 rounded-lg bg-black/50 hover:bg-black/70"
             >
-              Close
+              {t.actions.close}
             </button>
             <img
               src={viewerImageSrc ?? profileImage}
@@ -492,7 +499,7 @@ const Profile: React.FC = () => {
                             {typeof currentUser.rating_average === 'number' ? currentUser.rating_average.toFixed(1) : '-'}
                           </span>
                           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                            Rating ({currentUser.received_feedbacks_count ?? 0})
+                            {t.stats.rating} ({currentUser.received_feedbacks_count ?? 0})
                           </span>
                       </div>
                   </div>
@@ -502,7 +509,7 @@ const Profile: React.FC = () => {
                       </div>
                       <div>
                           <span className="block text-2xl font-extrabold text-gray-900 leading-none">142</span>
-                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Jobs Done</span>
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t.stats.jobsDone}</span>
                       </div>
                   </div>
                   <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-row items-center gap-4 hover:border-green-200 transition-colors">
@@ -511,7 +518,7 @@ const Profile: React.FC = () => {
                       </div>
                       <div>
                           <span className="block text-2xl font-extrabold text-gray-900 leading-none">0</span>
-                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Jobs Posted</span>
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t.stats.jobsPosted}</span>
                       </div>
                   </div>
                   <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-row items-center gap-4 hover:border-green-200 transition-colors">
@@ -520,7 +527,7 @@ const Profile: React.FC = () => {
                       </div>
                       <div>
                           <span className="block text-2xl font-extrabold text-gray-900 leading-none">0</span>
-                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ads</span>
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t.stats.ads}</span>
                       </div>
                   </div>
                   {/* <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-row items-center gap-4 hover:border-green-200 transition-colors">
@@ -546,9 +553,9 @@ const Profile: React.FC = () => {
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                   <div className="flex border-b border-gray-100 overflow-x-auto scrollbar-hide">
                       {[
-                          { id: 'overview', label: 'Overview' },
-                          { id: 'reviews', label: 'Reviews' },
-                          { id: 'given-reviews', label: 'Given Reviews' }
+                          { id: 'overview', label: t.tabs.overview },
+                          { id: 'reviews', label: t.tabs.reviews },
+                          { id: 'given-reviews', label: t.tabs.givenReviews }
                       ].map((tab: any) => (
                           <button
                             key={tab.id}
@@ -568,7 +575,7 @@ const Profile: React.FC = () => {
                       {activeTab === 'overview' && (
                           <div className="space-y-8 animate-fadeIn">
                               <div>
-                                  <h3 className="text-lg font-bold text-gray-900 mb-4">About Me</h3>
+                                  <h3 className="text-lg font-bold text-gray-900 mb-4">{t.overview.aboutMe}</h3>
                                   <p className="text-gray-600 leading-relaxed text-base">
                                       {currentUser.description}
                                   </p>
@@ -607,7 +614,7 @@ const Profile: React.FC = () => {
                           <div className="space-y-6 animate-fadeIn">
                               {receivedFeedbacks.length === 0 && (
                                 <div className="text-sm font-medium text-gray-500 bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
-                                  No reviews yet.
+                                  {t.reviews.empty}
                                 </div>
                               )}
 
@@ -636,7 +643,7 @@ const Profile: React.FC = () => {
                                     </div>
                                   </div>
                                   <p className="text-gray-600 text-sm leading-relaxed mt-2 bg-gray-50 p-4 rounded-xl rounded-tl-none">
-                                    {feedback.overview?.trim() ? `"${feedback.overview}"` : 'No comment yet.'}
+                                    {feedback.overview?.trim() ? `"${feedback.overview}"` : t.reviews.noComment}
                                   </p>
                                 </div>
                               ))}
@@ -647,7 +654,7 @@ const Profile: React.FC = () => {
                                   onClick={() => setShowAllReviews((prev) => !prev)}
                                   className="w-full py-3 border border-gray-200 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-50 transition"
                                 >
-                                  {showAllReviews ? 'Show Less Reviews' : 'Show More Reviews'}
+                                  {showAllReviews ? t.reviews.showLess : t.reviews.showMore}
                                 </button>
                               )}
                           </div>
@@ -657,7 +664,7 @@ const Profile: React.FC = () => {
                         <div className="space-y-6 animate-fadeIn">
                           {sentFeedbacks.length === 0 && (
                             <div className="text-sm font-medium text-gray-500 bg-gray-50 border border-gray-100 rounded-xl p-4 text-center">
-                              No reviews yet.
+                              {t.reviews.empty}
                             </div>
                           )}
 
@@ -686,7 +693,7 @@ const Profile: React.FC = () => {
                                 </div>
                               </div>
                               <p className="text-gray-600 text-sm leading-relaxed mt-2 bg-gray-50 p-4 rounded-xl rounded-tl-none">
-                                {feedback.overview?.trim() ? `"${feedback.overview}"` : 'No comment yet.'}
+                                {feedback.overview?.trim() ? `"${feedback.overview}"` : t.reviews.noComment}
                               </p>
                             </div>
                           ))}
@@ -697,7 +704,7 @@ const Profile: React.FC = () => {
                               onClick={() => setShowAllGivenReviews((prev) => !prev)}
                               className="w-full py-3 border border-gray-200 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-50 transition"
                             >
-                              {showAllGivenReviews ? 'Show Less Reviews' : 'Show More Reviews'}
+                              {showAllGivenReviews ? t.reviews.showLess : t.reviews.showMore}
                             </button>
                           )}
                         </div>
@@ -709,7 +716,7 @@ const Profile: React.FC = () => {
           <div className="space-y-6">
 
               <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="font-bold text-gray-900 text-lg mb-4">Contact Information</h3>
+                  <h3 className="font-bold text-gray-900 text-lg mb-4">{t.side.contactInformation}</h3>
                   <div className="space-y-4 mb-6">
                       <div className="flex items-center gap-3 text-sm font-medium text-gray-700">
                           <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><Mail size={16}/></div>
@@ -721,12 +728,12 @@ const Profile: React.FC = () => {
                       </div>
                   </div>
                   <button className="w-full bg-green-700 text-white py-3 rounded-xl font-bold hover:bg-green-800 transition shadow-lg shadow-green-900/10">
-                      Message Me
+                      {t.side.messageMe}
                   </button>
               </div>
 
               <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="font-bold text-gray-900 text-lg mb-4">Skills</h3>
+                  <h3 className="font-bold text-gray-900 text-lg mb-4">{t.side.skills}</h3>
                   <div className="flex flex-wrap gap-2">
                       {currentUser?.skills?.map(skill => (
                           <span key={skill} className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200">
@@ -737,12 +744,12 @@ const Profile: React.FC = () => {
               </div>
 
               <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                  <h3 className="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2"><Languages size={20}/> Languages</h3>
+                  <h3 className="font-bold text-gray-900 text-lg mb-4 flex items-center gap-2"><Languages size={20}/> {t.side.languages}</h3>
                   <div className="space-y-3">
                     {currentUser.languages && currentUser.languages.length > 0 ? (
                       currentUser.languages.map((item) => {
                         const level = normalizeLanguageLevel(item.level);
-                        const levelLabel = LANGUAGE_LEVEL_LABEL[level];
+                        const levelLabel = getLanguageLevelLabel(locale, level);
                         const levelColor = LANGUAGE_LEVEL_COLOR[level];
                         const widthPercent = (level / LanguageLevel.Native) * 100;
 
@@ -764,13 +771,13 @@ const Profile: React.FC = () => {
                         );
                       })
                     ) : (
-                      <p className="text-sm text-gray-500 font-medium">No languages added yet.</p>
+                      <p className="text-sm text-gray-500 font-medium">{t.side.noLanguagesYet}</p>
                     )}
                   </div>
               </div>
 
               <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-                   <h3 className="font-bold text-gray-900 text-lg mb-4">Verifications</h3>
+                   <h3 className="font-bold text-gray-900 text-lg mb-4">{t.side.verifications}</h3>
                    <div className="space-y-3">
                       <div className={`flex items-center gap-3 text-sm text-gray-700`}>
                           {currentUser.is_verified ? (
@@ -780,7 +787,7 @@ const Profile: React.FC = () => {
                               !
                             </div>
                           )}
-                          {currentUser.is_verified ? 'ID Verified' : 'ID verification needed'}
+                          {currentUser.is_verified ? t.side.idVerified : t.side.idVerificationNeeded}
                       </div>
                       <div className={`flex items-center gap-3 text-sm text-gray-700`}>
                           {currentUser.email_verified_at ? (
@@ -790,7 +797,7 @@ const Profile: React.FC = () => {
                               !
                             </div>
                           )}
-                          {currentUser.email_verified_at ? 'Email Verified' : 'Email verification needed'}
+                          {currentUser.email_verified_at ? t.side.emailVerified : t.side.emailVerificationNeeded}
                       </div>
                    </div>
                </div>
