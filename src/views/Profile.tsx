@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Camera, MapPin, Star, ShieldCheck, CheckCircle, Clock, Briefcase, Languages, ThumbsUp, Calendar, Mail, Phone, Globe, Edit3, Share2, ClipboardList, Megaphone } from 'lucide-react';
 import type { DetailedUserDto } from '@/api/dto/user.dto';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   LANGUAGE_LEVEL_COLOR,
   getLanguageLevelLabel,
@@ -18,10 +19,9 @@ interface ProfileProps {
 
 const Profile: React.FC<ProfileProps> = ({ locale }) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'overview' | 'reviews' | 'given-reviews'>('overview');
-  const [currentUser, setCurrentUser] = useState<DetailedUserDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [actionErrorMessage, setActionErrorMessage] = useState<string | null>(null);
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const [isCoverMenuOpen, setIsCoverMenuOpen] = useState(false);
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
@@ -35,39 +35,14 @@ const Profile: React.FC<ProfileProps> = ({ locale }) => {
   const profileInputRef = useRef<HTMLInputElement | null>(null);
   const t = profileTranslations[locale];
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadProfile = async () => {
-      try {
-        setIsLoading(true);
-        setErrorMessage(null);
-        const response = await userService.me();
-
-        if (!isMounted) {
-          return;
-        }
-
-        setCurrentUser(response);
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        setErrorMessage(error instanceof Error ? error.message : t.loadErrorFallback);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    void loadProfile();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const {
+    data: currentUser,
+    isLoading,
+    error: profileQueryError,
+  } = useQuery<DetailedUserDto>({
+    queryKey: ['profile', 'me'],
+    queryFn: () => userService.me(),
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -178,15 +153,15 @@ const Profile: React.FC<ProfileProps> = ({ locale }) => {
     event.stopPropagation();
 
     try {
-      setErrorMessage(null);
+      setActionErrorMessage(null);
       const updatedUser = await userService.update({
         _method: 'PATCH',
         remove_cover_picture: true,
       });
-      setCurrentUser(updatedUser);
+      queryClient.setQueryData(['profile', 'me'], updatedUser);
       setIsCoverMenuOpen(false);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : t.cover.deleteError);
+      setActionErrorMessage(error instanceof Error ? error.message : t.cover.deleteError);
     }
   };
 
@@ -203,15 +178,15 @@ const Profile: React.FC<ProfileProps> = ({ locale }) => {
     }
 
     try {
-      setErrorMessage(null);
+      setActionErrorMessage(null);
       const updatedUser = await userService.update({
         _method: 'PATCH',
         profile_picture: selectedFile,
       });
-      setCurrentUser(updatedUser);
+      queryClient.setQueryData(['profile', 'me'], updatedUser);
       setIsAvatarMenuOpen(false);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : t.avatar.updateError);
+      setActionErrorMessage(error instanceof Error ? error.message : t.avatar.updateError);
     } finally {
       event.target.value = '';
     }
@@ -221,15 +196,15 @@ const Profile: React.FC<ProfileProps> = ({ locale }) => {
     event.stopPropagation();
 
     try {
-      setErrorMessage(null);
+      setActionErrorMessage(null);
       const updatedUser = await userService.update({
         _method: 'PATCH',
         remove_profile_picture: true,
       });
-      setCurrentUser(updatedUser);
+      queryClient.setQueryData(['profile', 'me'], updatedUser);
       setIsAvatarMenuOpen(false);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : t.avatar.deleteError);
+      setActionErrorMessage(error instanceof Error ? error.message : t.avatar.deleteError);
     }
   };
 
@@ -240,14 +215,14 @@ const Profile: React.FC<ProfileProps> = ({ locale }) => {
     }
 
     try {
-      setErrorMessage(null);
+      setActionErrorMessage(null);
       const updatedUser = await userService.update({
         _method: 'PATCH',
         cover_picture: selectedFile,
       });
-      setCurrentUser(updatedUser);
+      queryClient.setQueryData(['profile', 'me'], updatedUser);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : t.cover.updateError);
+      setActionErrorMessage(error instanceof Error ? error.message : t.cover.updateError);
     } finally {
       event.target.value = '';
     }
@@ -263,11 +238,15 @@ const Profile: React.FC<ProfileProps> = ({ locale }) => {
     );
   }
 
-  if (errorMessage) {
+  const profileErrorMessage = actionErrorMessage
+    ?? (profileQueryError instanceof Error ? profileQueryError.message : null)
+    ?? (profileQueryError ? t.loadErrorFallback : null);
+
+  if (profileErrorMessage) {
     return (
       <div className="p-4 md:p-8 max-w-[1600px] mx-auto min-h-screen">
         <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-red-700 font-medium">
-          {errorMessage}
+          {profileErrorMessage}
         </div>
       </div>
     );
